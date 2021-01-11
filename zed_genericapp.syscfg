@@ -28,9 +28,9 @@ const ECDSA1      = ECDSA.addInstance();
 const ECJPAKE     = scripting.addModule("/ti/drivers/ECJPAKE");
 const ECJPAKE1    = ECJPAKE.addInstance();
 const GPIO        = scripting.addModule("/ti/drivers/GPIO", {}, false);
-const GPIO8       = GPIO.addInstance();
-const GPIO9       = GPIO.addInstance();
-const GPIO10      = GPIO.addInstance();
+const GPIO1       = GPIO.addInstance();
+const GPIO2       = GPIO.addInstance();
+const GPIO3       = GPIO.addInstance();
 const NVS         = scripting.addModule("/ti/drivers/NVS");
 const NVS1        = NVS.addInstance();
 const Power       = scripting.addModule("/ti/drivers/Power");
@@ -90,20 +90,20 @@ ECDSA1.$name = "CONFIG_ECDSA_0";
 
 ECJPAKE1.$name = "CONFIG_ECJPAKE_0";
 
-GPIO8.$name             = "CONFIG_GPIO_CH1_POWER";
-GPIO8.mode              = "Output";
-GPIO8.gpioPin.$assign   = "boosterpack.32";
-GPIO8.pinInstance.$name = "CONFIG_PIN_3";
+GPIO1.mode              = "Output";
+GPIO1.$name             = "CONFIG_GPIO_POWER_CH1";
+GPIO1.gpioPin.$assign   = "boosterpack.32";
+GPIO1.pinInstance.$name = "CONFIG_PIN_3";
 
-GPIO9.$name             = "CONFIG_GPIO_CH2_POWER";
-GPIO9.mode              = "Output";
-GPIO9.gpioPin.$assign   = "boosterpack.31";
-GPIO9.pinInstance.$name = "CONFIG_PIN_6";
+GPIO2.mode              = "Output";
+GPIO2.$name             = "CONFIG_GPIO_POWER_CH2";
+GPIO2.gpioPin.$assign   = "boosterpack.31";
+GPIO2.pinInstance.$name = "CONFIG_PIN_6";
 
-GPIO10.$name             = "CONFIG_GPIO_CH3_POWER";
-GPIO10.mode              = "Output";
-GPIO10.gpioPin.$assign   = "boosterpack.10";
-GPIO10.pinInstance.$name = "CONFIG_PIN_7";
+GPIO3.mode              = "Output";
+GPIO3.$name             = "CONFIG_GPIO_POWER_CH3";
+GPIO3.gpioPin.$assign   = "boosterpack.10";
+GPIO3.pinInstance.$name = "CONFIG_PIN_7";
 
 NVS1.$name                    = "CONFIG_NVSINTERNAL";
 NVS1.internalFlash.$name      = "ti_drivers_nvs_NVSCC26XX0";
@@ -125,17 +125,17 @@ Button2.gpioPin.$name             = "CONFIG_GPIO_BTN2";
 Button2.gpioPin.pinInstance.$name = "CONFIG_PIN_BTN2";
 
 Button3.$name                     = "CONFIG_BUTTON_CH1";
-Button3.gpioPin.$name             = "CONFIG_GPIO_0";
+Button3.gpioPin.$name             = "CONFIG_GPIO_BTN_CH1";
 Button3.gpioPin.gpioPin.$assign   = "boosterpack.5";
 Button3.gpioPin.pinInstance.$name = "CONFIG_PIN_0";
 
 Button4.$name                     = "CONFIG_BUTTON_CH2";
-Button4.gpioPin.$name             = "CONFIG_GPIO_1";
+Button4.gpioPin.$name             = "CONFIG_GPIO_BTN_CH2";
 Button4.gpioPin.gpioPin.$assign   = "boosterpack.8";
 Button4.gpioPin.pinInstance.$name = "CONFIG_PIN_1";
 
 Button5.$name                     = "CONFIG_BUTTON_CH3";
-Button5.gpioPin.$name             = "CONFIG_GPIO_2";
+Button5.gpioPin.$name             = "CONFIG_GPIO_BTN_CH3";
 Button5.gpioPin.gpioPin.$assign   = "boosterpack.9";
 Button5.gpioPin.pinInstance.$name = "CONFIG_PIN_2";
 

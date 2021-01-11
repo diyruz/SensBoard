@@ -94,7 +94,7 @@
  */
 static const uint8_t adcChannels[] = {CONFIG_ADC_CH1, CONFIG_ADC_CH2};
 static const uint8_t gpioChannes[] = {CONFIG_BUTTON_CH1, CONFIG_BUTTON_CH2, CONFIG_BUTTON_CH3};
-static const uint8_t powerChannels[] = {CONFIG_GPIO_CH1_POWER, CONFIG_GPIO_CH2_POWER, CONFIG_GPIO_CH3_POWER};
+static const uint8_t powerChannels[] = {CONFIG_GPIO_POWER_CH1, CONFIG_GPIO_POWER_CH2, CONFIG_GPIO_POWER_CH3};
 /*********************************************************************
  * TYPEDEFS
  */
@@ -131,9 +131,6 @@ static endPointDesc_t zclGenericAppChannelsEpDesc[GENERICAPP_CHANNELS_COUNT];
 static Clock_Handle EndDeviceRejoinClkHandle;
 static Clock_Struct EndDeviceRejoinClkStruct;
 #endif
-
-static Clock_Handle sensorsPowerOnClkHandle;
-static Clock_Struct sensorsPowerOnClkStruct;
 
 static Clock_Handle readSensorsClkHandle;
 static Clock_Struct readSensorsClkStruct;
