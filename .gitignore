@@ -7,3 +7,9 @@ src/sysbios/m3_TaskSupport_asm.obj
 src/sysbios/makefile
 src/sysbios/rom_sysbios.aem4f
 src/sysbios/rom_sysbios.obj
+/default__opt_for_speed__0/
+/default__opt_for_speed__1/
+/default__opt_for_speed__2/
+/default__opt_for_speed__3/
+/default__opt_for_speed__4/
+/default__opt_for_speed__5/

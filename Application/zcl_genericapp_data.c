@@ -321,7 +321,8 @@ const cId_t zclGenericApp_ChannelsInClusterList[] =
 const cId_t zclGenericApp_ChannelsOutClusterList[] =
 {
  ZCL_CLUSTER_ID_GENERAL_MULTISTATE_INPUT_BASIC,
- ZCL_CLUSTER_ID_GENERAL_ANALOG_INPUT_BASIC
+ ZCL_CLUSTER_ID_GENERAL_ANALOG_INPUT_BASIC,
+ ZCL_CLUSTER_ID_SS_IAS_ZONE
 };
 
 #define ZCLGENERICAPP_MAX_CHANNELS_OUTCLUSTERS  (sizeof(zclGenericApp_ChannelsOutClusterList) / sizeof(zclGenericApp_ChannelsOutClusterList[0]))

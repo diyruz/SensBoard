@@ -67,12 +67,14 @@
 #include "zcl_general.h"
 #include "zcl_genericapp.h"
 #include "zcl_port.h"
+#include "zcl_ss.h"
 
 #include "ti_drivers_config.h"
 #include "util_timer.h"
 #include <ti/drivers/ADC.h>
 #include <ti/drivers/Temperature.h>
 #include <ti/drivers/apps/Button.h>
+#include <ti/drivers/apps/LED.h>
 
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Semaphore.h>
@@ -147,8 +149,13 @@ static NVINTF_nvFuncts_t *pfnZdlNV = NULL;
 // Key press parameters
 static Button_Handle keys = NULL;
 static Button_Handle counters = NULL;
+static Button_EventMask counterEvents[GENERICAPP_CHANNELS_COUNT];
 
-afAddrType_t zclGenericApp_DstAddr;
+afAddrType_t inderect_DstAddr =  {.addrMode = (afAddrMode_t)AddrNotPresent, .endPoint = 0, .addr.shortAddr = 0};
+
+
+static LED_Handle gGreenLedHandle;
+static LED_Handle gRedLedHandle;
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -340,6 +347,11 @@ static void Initialize_UI(void) {
 
     // Set button callback
     Button_setCallback(gRightButtonHandle, zclGenericApp_changeKeyCallback);
+
+    LED_Params ledParams;
+    LED_Params_init(&ledParams);
+    gGreenLedHandle = LED_open(CONFIG_LED_GREEN, &ledParams);
+    gRedLedHandle = LED_open(CONFIG_LED_RED, &ledParams);
 }
 
 static void Initialize_ChannelsButtons(void) {
@@ -348,6 +360,7 @@ static void Initialize_ChannelsButtons(void) {
     Button_Params_init(&bparams);
     for (int i = 0; i < sizeof(gpioChannes) / sizeof(gpioChannes[0]); i++) {
         counterHandles[i] = Button_open(gpioChannes[i], zclGenericApp_CounterPinCallback, &bparams);
+        counterEvents[i] = 0;
     }
 }
 
@@ -382,12 +395,6 @@ static void SetupZStackCallbacks(void) {
  * @return      none
  */
 static void zclGenericApp_Init(void) {
-
-    // Set destination address to indirect
-    zclGenericApp_DstAddr.addrMode = (afAddrMode_t)AddrNotPresent;
-    zclGenericApp_DstAddr.endPoint = 0;
-    zclGenericApp_DstAddr.addr.shortAddr = 0;
-
     Initialize_UI();
     Initialize_ChannelsButtons();
     zclGenericApp_InitChannelsClusters();
@@ -1143,14 +1150,26 @@ static void zclGenericApp_changeKeyCallback(Button_Handle _btn, Button_EventMask
 }
 
 static void zclGenericApp_CounterPinCallback(Button_Handle _btn, Button_EventMask _buttonEvents) {
-    if (_buttonEvents & Button_EV_CLICKED) {
-        counters = _btn;
 
-        appServiceTaskEvents |= GENERICAPP_COUNTER_PIN_EVT;
-
-        // Wake up the application thread when it waits for clock event
-        Semaphore_post(appSemHandle);
+    for (size_t i = 0; i < sizeof(gpioChannes) / sizeof(gpioChannes[0]); i++) {
+        if (_btn == counterHandles[i]) {
+            counterEvents[i] |= _buttonEvents;
+            counters = _btn;
+            appServiceTaskEvents |= GENERICAPP_COUNTER_PIN_EVT;
+            // Wake up the application thread when it waits for clock event
+            Semaphore_post(appSemHandle);
+            break;
+        }
     }
+
+    //    if (_buttonEvents & Button_EV_CLICKED) {
+    //        counters = _btn;
+    //
+    //        appServiceTaskEvents |= GENERICAPP_COUNTER_PIN_EVT;
+    //
+    //        // Wake up the application thread when it waits for clock event
+    //        Semaphore_post(appSemHandle);
+    //    }
 }
 
 /*********************************************************************
@@ -1163,6 +1182,10 @@ static void zclGenericApp_CounterPinCallback(Button_Handle _btn, Button_EventMas
  * @return  none
  */
 static void zclGenericApp_processKey(Button_Handle _btn) {
+
+    LED_setOn(gGreenLedHandle, 80);
+    LED_startBlinking(gGreenLedHandle, 500, 5);
+
     zstack_bdbStartCommissioningReq_t zstack_bdbStartCommissioningReq;
     // Button 1
     if (_btn == gLeftButtonHandle) {
@@ -1184,17 +1207,40 @@ static void zclGenericApp_processKey(Button_Handle _btn) {
 }
 
 static void zclGenericApp_processCounter(Button_Handle _btn) {
-    // GPIO_toggle(CONFIG_GPIO_RLED);
-
     for (size_t i = 0; i < sizeof(gpioChannes) / sizeof(gpioChannes[0]); i++) {
         if (_btn == counterHandles[i]) {
-            zclGenericApp_MutistateInputValues[i] += 1;
 
-            zstack_bdbRepChangedAttrValueReq_t Req;
-            Req.attrID = ATTRID_IOV_BASIC_PRESENT_VALUE;
-            Req.cluster = ZCL_CLUSTER_ID_GENERAL_MULTISTATE_INPUT_BASIC;
-            Req.endpoint = zclGenericApp_ChannelsSimpleDesc[i].EndPoint;
-            Zstackapi_bdbRepChangedAttrValueReq(appServiceTaskId, &Req);
+            if (counterEvents[i] & Button_EV_CLICKED) {
+
+                LED_setOn(gGreenLedHandle, 80);
+                LED_startBlinking(gGreenLedHandle, 500, 2);
+
+                zclGenericApp_MutistateInputValues[i] += 1;
+                zstack_bdbRepChangedAttrValueReq_t Req;
+                Req.attrID = ATTRID_IOV_BASIC_PRESENT_VALUE;
+                Req.cluster = ZCL_CLUSTER_ID_GENERAL_MULTISTATE_INPUT_BASIC;
+                Req.endpoint = zclGenericApp_ChannelsSimpleDesc[i].EndPoint;
+                Zstackapi_bdbRepChangedAttrValueReq(appServiceTaskId, &Req);
+
+                counterEvents[i] &= ~(Button_EV_CLICKED);
+            }
+
+            if (counterEvents[i] & Button_EV_PRESSED) {
+                LED_setOn(gRedLedHandle, 80);
+                uint16 alarmStatus = 0;
+                zclSS_IAS_Send_ZoneStatusChangeNotificationCmd(zclGenericApp_ChannelsSimpleDesc[i].EndPoint, &inderect_DstAddr, alarmStatus, 0, 0, 0, true, zcl_getFrameCounter());
+                counterEvents[i] &= ~(Button_EV_PRESSED);
+            }
+
+            if (counterEvents[i] & Button_EV_RELEASED) {
+
+                LED_setOff(gRedLedHandle);
+                counterEvents[i] &= ~(Button_EV_RELEASED);
+                uint16 alarmStatus = 0;
+                alarmStatus |= SS_IAS_ZONE_STATUS_ALARM1_ALARMED;
+                zclSS_IAS_Send_ZoneStatusChangeNotificationCmd(zclGenericApp_ChannelsSimpleDesc[i].EndPoint, &inderect_DstAddr, alarmStatus, 0, 0, 0, true, zcl_getFrameCounter());
+            }
+
             break;
         }
     }

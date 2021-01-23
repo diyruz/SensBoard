@@ -96,9 +96,9 @@ extern "C" {
 #define GENERIC_HELPMODE 0x01
 
 #define GENERICAPP_END_DEVICE_REJOIN_DELAY 1000
-#define GENERICAPP_SENSORS_READING_INTERVAL (2 * 1000) // 5 sec fot test
-#define GENERICAPP_BATTERY_SAMPLING_INTERVAL (1 * 1000) // 5 sec fot test
-#define GENERICAPP_SENSORS_POWER_ON_TIME 1000 // in millisecons
+#define GENERICAPP_SENSORS_READING_INTERVAL (5 * 60 * 1000) // 5 min
+#define GENERICAPP_BATTERY_SAMPLING_INTERVAL (30 * 60 * 1000) // 30 min
+#define GENERICAPP_SENSORS_POWER_ON_TIME 50 // in millisecons
 
 /*********************************************************************
  * MACROS
