@@ -120,6 +120,7 @@
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEFINE.1447866818" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="${COM_TI_SIMPLELINK_CC13X2_26X2_SDK_SYMBOLS}"/>
+									<listOptionValue builtIn="false" value="ZCL_ON_OFF"/>
 									<listOptionValue builtIn="false" value="BDBREPORTING_MAX_ANALOG_ATTR_SIZE=4"/>
 									<listOptionValue builtIn="false" value="DISABLE_GREENPOWER_BASIC_PROXY"/>
 									<listOptionValue builtIn="false" value="BDB_MAX_CLUSTERENDPOINTS_REPORTING=10"/>

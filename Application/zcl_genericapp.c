@@ -1221,7 +1221,7 @@ static void zclGenericApp_processCounter(Button_Handle _btn) {
                 Req.cluster = ZCL_CLUSTER_ID_GENERAL_MULTISTATE_INPUT_BASIC;
                 Req.endpoint = zclGenericApp_ChannelsSimpleDesc[i].EndPoint;
                 Zstackapi_bdbRepChangedAttrValueReq(appServiceTaskId, &Req);
-
+                zclGeneral_SendOnOff_CmdToggle(zclGenericApp_ChannelsSimpleDesc[i].EndPoint, &inderect_DstAddr, true,  zcl_getFrameCounter());
                 counterEvents[i] &= ~(Button_EV_CLICKED);
             }
 
