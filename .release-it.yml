@@ -1,0 +1,6 @@
+git:
+  requireCleanWorkingDir: false
+github:
+  release: true
+  assets: ["./default/CUSTOM_zed_genericapp_CC26X2R1_LAUNCHXL_tirtos_ccs.hex"]
+  draft: false
