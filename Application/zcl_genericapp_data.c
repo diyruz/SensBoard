@@ -101,8 +101,11 @@ const uint8_t zclGenericApp_ZCLVersion = GENERICAPP_ZCLVERSION;
 const uint8_t zclGenericApp_ManufacturerName[] = { 6, 'D', 'I', 'Y', 'R', 'u', 'Z'};
 const uint8_t zclGenericApp_PowerSource = POWER_SOURCE_BATTERY;
 uint8_t zclGenericApp_PhysicalEnvironment = PHY_UNSPECIFIED_ENV;
-const uint8_t zclGenericApp_ModelName[] = { 15, 'D', 'I', 'Y', 'R', 'u', 'Z', '_', 'W', 'a', 't', 'e', 'r', 'M', 'o', 'n'};
-const uint8_t zclGenericApp_DateCode[] = {4, '2', '0', '2', '0'};
+
+const uint8_t zclGenericApp_ModelName[] = { 16, 'D', 'I', 'Y', 'R', 'u', 'Z', '_', 'S', 'e', 'n', 's', 'B', 'o', 'a', 'r', 'd' };
+uint8_t zclGenericApp_DateCode[] = {20, 'U', 'N', 'K', 'N', 'O', 'W', 'N', '-', '-',  '-', '-', '-', '-', 'U', 'N', 'K', 'N', 'O', 'W', 'N'};
+
+
 const uint8_t zclGenericApp_ApplicationVersion = 1;
 const uint8_t zclGenericApp_BuildId = 1;
 
@@ -345,6 +348,11 @@ SimpleDescriptionFormat_t zclGenericApp_SimpleDesc =
 
 
 void zclGenericApp_InitChannelsClusters(void) {
+    const char build_str[] = __DATE__ " " __TIME__;
+    for (size_t i = 1; i <= sizeof(zclGenericApp_DateCode) / sizeof(zclGenericApp_DateCode[0]); i++) {
+      zclGenericApp_DateCode[i] = build_str[i - 1];
+    }
+
     for (uint8_t i = 0; i < GENERICAPP_CHANNELS_COUNT; i++) {
         zclGenericApp_ChannelsSimpleDesc[i] = (SimpleDescriptionFormat_t){
           GENERICAPP_CHANNELS_STARTING_ENDPOINT + i,                              //  int Endpoint;

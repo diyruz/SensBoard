@@ -3,49 +3,50 @@ const {
     exposes
 } = require('zigbee-herdsman-converters');
 const {
-    postfixWithEndpointName
+    postfixWithEndpointName,
+    getKey
 } = require('zigbee-herdsman-converters/lib/utils');
-const bind = async (endpoint, target, clusters) => {
-    for (const cluster of clusters) {
-        await endpoint.bind(cluster, target);
-    }
-};
+
+const {
+    bind
+} = require('zigbee-herdsman-converters/lib/reporting');
+
+
 const CHANNELS_STARTING_ENDPOINT = 2;
 const CHANNELS_COUNT = 3;
-const ACCESS_STATE = 0b001,
-    ACCESS_WRITE = 0b010,
-    ACCESS_READ = 0b100;
+
+
 
 const defaultReportingConfig = {
-    minimumReportInterval: 60,
-    maximumReportInterval: 60 * 30,
-    reportableChange: 1,
+    minimumReportInterval: 0,
+    maximumReportInterval: 5,
+    reportableChange: 0,
 };
-
-
-
-function getKey(object, value, fallback, convertTo) {
-    for (const key in object) {
-        if (object[key] === value) {
-            return convertTo ? convertTo(key) : key;
-        }
-    }
-
-    return fallback;
-}
-
 
 const endpointNames = {
     l1: 2,
     l2: 3,
     l3: 4
 };
+const adcChannels = ['l1', 'l2'];
 
+const deviceExposes = [
+    exposes.presets.device_temperature(),
+    exposes.numeric('voltage', exposes.access.STATE).withDescription('Battery voltage').withUnit('mV'),
+    exposes.presets.battery(),
+    ...Object.keys(endpointNames).map(epName => exposes.numeric('present_value', exposes.access.STATE).withEndpoint(epName).withDescription('Current data in device memory')),
+    ...Object.keys(endpointNames).map(epName => exposes.numeric('delta_value', exposes.access.STATE).withEndpoint(epName).withDescription('Last reported value')),
+    ...Object.keys(endpointNames).map(epName => exposes.numeric('total_value', exposes.access.STATE).withEndpoint(epName).withDescription('Total value processed by device')),
+    ...Object.keys(endpointNames).map(epName => exposes.enum('action', exposes.access.SET, ['clear_counter_stats']).withEndpoint(epName).withDescription("Actions")),
+    ...adcChannels.map(epName => exposes.numeric('adc_value', exposes.access.STATE).withEndpoint(epName).withDescription('ADC voltage').withUnit('V')),
+    ...Object.keys(endpointNames).map(epName => exposes.presets.contact().withEndpoint(epName)),
+    exposes.presets.action(Object.keys(endpointNames).map(epName => `toggle_${epName}`))
+];
 const device = {
-    zigbeeModel: ['DIYRuZ_WaterMon'],
-    model: 'DIYRuZ_WaterMon',
+    zigbeeModel: ['DIYRuZ_SensBoard'],
+    model: 'DIYRuZ_SensBoard',
     vendor: 'DIYRuZ',
-    description: '[DIYRuZ_WaterMon](http://xxx.ru)',
+    description: '[DIYRuZ_SensBoard](http://xxx.ru)',
     supports: '',
     fromZigbee: [{
             cluster: 'genAnalogInput',
@@ -88,7 +89,9 @@ const device = {
             }
         },
         fromZigbeeConverters.device_temperature,
-        fromZigbeeConverters.battery
+        fromZigbeeConverters.battery,
+        fromZigbeeConverters.ias_contact_alarm_1,
+        fromZigbeeConverters.command_toggle
     ],
     toZigbee: [{
         key: ['action'],
@@ -96,7 +99,7 @@ const device = {
         convertSet: async (entity, key, value, meta) => {
             const result = {};
             switch (value) {
-                case 'clear_stats':
+                case 'clear_counter_stats':
                     await entity.write('genMultistateInput', {
                         presentValue: 0
                     });
@@ -116,32 +119,30 @@ const device = {
         },
     }],
     meta: {
-        configureKey: 11,
+        configureKey: 15,
         multiEndpoint: true,
         battery: {
             voltageToPercentage: '3V_2500_3200' // FYI: https://github.com/Koenkk/zigbee-herdsman-converters/blob/239822497aae9ab51d22c80206b9a42a4265a94a/lib/utils.js#L118
         }
     },
     configure: async (device, coordinatorEndpoint) => {
+        const firstEp = device.getEndpoint(1);
+        await bind(firstEp, coordinatorEndpoint, [
+            'genDeviceTempCfg', 'genPowerCfg'
+        ]);
+        await firstEp.configureReporting('genDeviceTempCfg', [{
+            ...defaultReportingConfig,
+            attribute: 'currentTemperature'
+        }]);
+        await firstEp.configureReporting('genPowerCfg', [{
+            ...defaultReportingConfig,
+            attribute: 'batteryVoltage',
+        }]);
+
         for (let i = 0; i < CHANNELS_COUNT; i++) {
-            const firstEp = device.getEndpoint(1);
-
-            await bind(firstEp, coordinatorEndpoint, [
-                'genDeviceTempCfg', 'genPowerCfg'
-            ]);
-            await firstEp.configureReporting('genDeviceTempCfg', [{
-                ...defaultReportingConfig,
-                attribute: 'currentTemperature'
-            }]);
-            await firstEp.configureReporting('genPowerCfg', [{
-                ...defaultReportingConfig,
-                attribute: 'batteryVoltage',
-            }]);
-
-
             const ep = device.getEndpoint(CHANNELS_STARTING_ENDPOINT + i);
             await bind(ep, coordinatorEndpoint, [
-                'genMultistateInput', 'genAnalogInput'
+                'genMultistateInput', 'genAnalogInput', 'ssIasZone', 'genOnOff'
             ]);
             await ep.configureReporting('genMultistateInput', [{
                 ...defaultReportingConfig,
@@ -153,35 +154,7 @@ const device = {
             }]);
         }
     },
-    exposes: [
-        exposes.presets.device_temperature(),
-        exposes.numeric('voltage', ACCESS_STATE).withDescription('Battery voltage').withUnit('mV'),
-        exposes.presets.battery(),
-
-        exposes.numeric('present_value', ACCESS_STATE).withEndpoint('l1').withDescription('Current data in device memory'),
-        exposes.numeric('present_value', ACCESS_STATE).withEndpoint('l2').withDescription('Current data in device memory'),
-        exposes.numeric('present_value', ACCESS_STATE).withEndpoint('l3').withDescription('Current data in device memory'),
-
-        exposes.numeric('delta_value', ACCESS_STATE).withEndpoint('l1').withDescription('Last reported value'),
-        exposes.numeric('delta_value', ACCESS_STATE).withEndpoint('l2').withDescription('Last reported value'),
-        exposes.numeric('delta_value', ACCESS_STATE).withEndpoint('l3').withDescription('Last reported value'),
-
-
-        exposes.numeric('total_value', ACCESS_STATE).withEndpoint('l1').withDescription('Total value processed by device'),
-        exposes.numeric('total_value', ACCESS_STATE).withEndpoint('l2').withDescription('Total value processed by device'),
-        exposes.numeric('total_value', ACCESS_STATE).withEndpoint('l3').withDescription('Total value processed by device'),
-
-
-        exposes.enum('action', ACCESS_WRITE, ['clear_stats']).withEndpoint('l1').withDescription("Actions"),
-        exposes.enum('action', ACCESS_WRITE, ['clear_stats']).withEndpoint('l2').withDescription("Actions"),
-        exposes.enum('action', ACCESS_WRITE, ['clear_stats']).withEndpoint('l3').withDescription("Actions"),
-
-
-        exposes.numeric('adc_value', ACCESS_STATE).withEndpoint('l1').withDescription('ADC voltage').withUnit('V'),
-        exposes.numeric('adc_value', ACCESS_STATE).withEndpoint('l2').withDescription('ADC voltage').withUnit('V'),
-
-
-    ],
+    exposes: deviceExposes,
     endpoint: (device) => endpointNames
 };
 
