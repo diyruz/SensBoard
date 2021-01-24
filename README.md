@@ -1,3 +1,7 @@
+# Hardware
+
+![Schematics](./hardware/Schematic_Devborda_mini cc2652r_2021-01-24.png)
+
 # UI
 
 `BTN-1`: Starts the commissioning process.
