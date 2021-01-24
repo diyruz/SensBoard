@@ -2,6 +2,11 @@
 
 ![Schematics](./hardware/Schematic_Devborda_mini_cc2652r_2021-01-24.png)
 
+# How to add device into zigbe2mqtt
+Use [external converters](https://www.zigbee2mqtt.io/information/configuration.html#external-converters-configuration) feature
+
+Converter file located [here](./DIYRuZ_SensBoard.js)
+
 # UI
 
 `BTN-1`: Starts the commissioning process.
