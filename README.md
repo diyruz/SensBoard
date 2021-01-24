@@ -1,14 +1,18 @@
 # UI
 
 `BTN-1`: Starts the commissioning process.
-`BTN-2`: If hold after reset, perform Factory New reset (erase network and application persistent data)
-`BTN-2`: Reset the application to factory new state (also calls `zclGenericApp_RemoveAppNvmData`).
+
+`BTN-2`: If hold after reset, perform Factory New reset (erase network and application persistent data `zclGenericApp_RemoveAppNvmData`)
+
+`BTN-2`: Reset the application to factory new state.
 
 # Buttons
 
 `BTN-1` -> `DIO13`
 
 `BTN-2`-> `DIO14`
+
+# All pins are pulled up
 
 
 # GND pins
