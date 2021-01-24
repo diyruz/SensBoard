@@ -1,6 +1,6 @@
 # Hardware
 
-![Schematics](./hardware/Schematic_Devborda_mini cc2652r_2021-01-24.png)
+![Schematics](./hardware/Schematic_Devborda_mini_cc2652r_2021-01-24.png)
 
 # UI
 
