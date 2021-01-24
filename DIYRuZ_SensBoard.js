@@ -4,7 +4,8 @@ const {
 } = require('zigbee-herdsman-converters');
 const {
     postfixWithEndpointName,
-    getKey
+    getKey,
+    precisionRound
 } = require('zigbee-herdsman-converters/lib/utils');
 
 const {
@@ -14,6 +15,7 @@ const {
 
 const CHANNELS_STARTING_ENDPOINT = 2;
 const CHANNELS_COUNT = 3;
+const ADC_ROUNDING_PRECISION = 3;
 
 
 
@@ -42,82 +44,87 @@ const deviceExposes = [
     ...Object.keys(endpointNames).map(epName => exposes.presets.contact().withEndpoint(epName)),
     exposes.presets.action(Object.keys(endpointNames).map(epName => `toggle_${epName}`))
 ];
+
+const adcValueConverter = {
+    cluster: 'genAnalogInput',
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg, publish, options, meta) => {
+        const adcPropName = postfixWithEndpointName('adc_value', msg, model);
+        const {
+            presentValue
+        } = msg.data;
+        return {
+            [adcPropName]: precisionRound(presentValue, ADC_ROUNDING_PRECISION)
+        }
+    },
+};
+
+const pulseCounterConverter = {
+    cluster: 'genMultistateInput',
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg, publish, options, meta) => {
+        const totalPropName = postfixWithEndpointName('total_value', msg, model);
+        const presentPropName = postfixWithEndpointName('present_value', msg, model);
+        const deltaPropName = postfixWithEndpointName('delta_value', msg, model);
+        const {
+            state = {}
+        } = meta;
+        const totalValue = state[totalPropName] || 0;
+        const prevValue = state[presentPropName] || 0;
+
+        const {
+            presentValue
+        } = msg.data;
+
+        const diff = prevValue <= presentValue ? presentValue - prevValue : presentValue;
+
+        return {
+            [presentPropName]: presentValue,
+            [totalPropName]: totalValue + diff,
+            [deltaPropName]: diff
+        }
+
+    }
+};
+const clearPulseCounterConverter = {
+    key: ['action'],
+
+    convertSet: async (entity, key, value, meta) => {
+        const result = {};
+        switch (value) {
+            case 'clear_counter_stats':
+                await entity.write('genMultistateInput', {
+                    presentValue: 0
+                });
+                const names = ['total_value', 'present_value', 'delta_value']
+                const endpointName = getKey(endpointNames, entity.ID);
+                result.state = {};
+                names.forEach(name => result.state[`${name}_${endpointName}`] = 0);
+                break;
+            default:
+                meta.logger.error('Not implemented' + value);
+                break;
+        }
+        return result;
+
+    },
+};
 const device = {
     zigbeeModel: ['DIYRuZ_SensBoard'],
     model: 'DIYRuZ_SensBoard',
     vendor: 'DIYRuZ',
     description: '[DIYRuZ_SensBoard](http://xxx.ru)',
-    supports: '',
-    fromZigbee: [{
-            cluster: 'genAnalogInput',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                const adcPropName = postfixWithEndpointName('adc_value', msg, model);
-                const {
-                    presentValue
-                } = msg.data;
-                return {
-                    [adcPropName]: presentValue.toFixed(3)
-                }
-            },
-        },
-        {
-            cluster: 'genMultistateInput',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                const totalPropName = postfixWithEndpointName('total_value', msg, model);
-                const presentPropName = postfixWithEndpointName('present_value', msg, model);
-                const deltaPropName = postfixWithEndpointName('delta_value', msg, model);
-                const {
-                    state = {}
-                } = meta;
-                const totalValue = state[totalPropName] || 0;
-                const prevValue = state[presentPropName] || 0;
-
-                const {
-                    presentValue
-                } = msg.data;
-
-                const diff = prevValue <= presentValue ? presentValue - prevValue : presentValue;
-
-                return {
-                    [presentPropName]: presentValue,
-                    [totalPropName]: totalValue + diff,
-                    [deltaPropName]: diff
-                }
-
-            }
-        },
+    fromZigbee: [
+        adcValueConverter,
+        pulseCounterConverter,
         fromZigbeeConverters.device_temperature,
         fromZigbeeConverters.battery,
         fromZigbeeConverters.ias_contact_alarm_1,
         fromZigbeeConverters.command_toggle
     ],
-    toZigbee: [{
-        key: ['action'],
-
-        convertSet: async (entity, key, value, meta) => {
-            const result = {};
-            switch (value) {
-                case 'clear_counter_stats':
-                    await entity.write('genMultistateInput', {
-                        presentValue: 0
-                    });
-                    const names = ['total_value', 'present_value', 'delta_value']
-                    const endpointName = getKey(endpointNames, entity.ID);
-                    result.state = {};
-                    names.forEach(name => {
-                        result.state[`${name}_${endpointName}`] = 0;
-                    });
-                    break;
-                default:
-                    meta.logger.error('Not implemented' + value);
-                    break;
-            }
-            return result;
-
-        },
-    }],
+    toZigbee: [
+        clearPulseCounterConverter
+    ],
     meta: {
         configureKey: 15,
         multiEndpoint: true,
