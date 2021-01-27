@@ -573,6 +573,15 @@ static uint16_t events = 0;
 static Button_Handle  keys;
 
 #if defined(USE_DMM) && defined(BLOCK_MODE_TEST)
+DMMPolicy_StackRole DMMPolicy_StackRole_ZigbeeDevice =
+#if ZG_BUILD_ENDDEVICE_TYPE
+    DMMPolicy_StackRole_ZigbeeEndDevice;
+#elif ZG_BUILD_RTRONLY_TYPE
+    DMMPolicy_StackRole_ZigbeeRouter;
+#elif ZG_BUILD_COORDINATOR_TYPE
+    DMMPolicy_StackRole_ZigbeeCoordinator;
+#endif
+
 static uint16_t ZCL_BLOCK_MODE_ON_PERIOD  = 0x01F4;    // Default 500  ms
 static uint16_t ZCL_BLOCK_MODE_OFF_PERIOD = 0x03E8;    // Default 1000 ms
 #endif
@@ -2670,10 +2679,10 @@ static void zclSampleApps_blockModeTestClockHandler(UArg arg)
   // stop the timer
   UtilTimer_stop(&clkBlockModeTestStruct);
 
-  if (DMMPolicy_getBlockModeStatus(DMMPolicy_StackRole_154Sensor))
+  if (DMMPolicy_getBlockModeStatus(DMMPolicy_StackRole_ZigbeeDevice))
   {
     // update the DMM Block Mode status
-    DMMPolicy_setBlockModeOff(DMMPolicy_StackRole_154Sensor);
+    DMMPolicy_setBlockModeOff(DMMPolicy_StackRole_ZigbeeDevice);
 
     // restart the timer with new timeout value
     UtilTimer_setTimeout(clkBlockModeTestHandle, ZCL_BLOCK_MODE_OFF_PERIOD);
@@ -2682,7 +2691,7 @@ static void zclSampleApps_blockModeTestClockHandler(UArg arg)
   else
   {
     // update the DMM Block Mode status
-    DMMPolicy_setBlockModeOn(DMMPolicy_StackRole_154Sensor);
+    DMMPolicy_setBlockModeOn(DMMPolicy_StackRole_ZigbeeDevice);
 
     // restart the timer with new timeout value
     UtilTimer_setTimeout(clkBlockModeTestHandle, ZCL_BLOCK_MODE_ON_PERIOD);
@@ -2703,7 +2712,7 @@ static void zclSampleApps_blockModeTestOn(int32_t menuEntryIndex)
   {
     UtilTimer_setTimeout(clkBlockModeTestHandle, ZCL_BLOCK_MODE_ON_PERIOD);
     UtilTimer_start(&clkBlockModeTestStruct);
-    DMMPolicy_setBlockModeOn(DMMPolicy_StackRole_154Sensor);
+    DMMPolicy_setBlockModeOn(DMMPolicy_StackRole_ZigbeeDevice);
     CUI_statusLinePrintf(gCuiHandle, gBlockModeTestInfoLine, "Enabled");
   }
 }
@@ -2721,7 +2730,7 @@ static void zclSampleApps_blockModeTestOff(int32_t menuEntryIndex)
   {
       UtilTimer_stop(&clkBlockModeTestStruct);
   }
-  DMMPolicy_setBlockModeOff(DMMPolicy_StackRole_154Sensor);
+  DMMPolicy_setBlockModeOff(DMMPolicy_StackRole_ZigbeeDevice);
   CUI_statusLinePrintf(gCuiHandle, gBlockModeTestInfoLine, "Disabled");
 }
 

@@ -176,7 +176,7 @@ typedef struct
 
 CONST zdpMsgProcItem_t zdpMsgProcs[] =
 {
-#if ( RFD_RCVC_ALWAYS_ON==TRUE ) || ( ZG_BUILD_RTR_TYPE )
+#if ( RFD_RX_ALWAYS_ON_CAPABLE == TRUE ) || ( ZG_BUILD_RTR_TYPE )
   // These aren't processed by sleeping end devices.
   { Device_annce,           ZDO_ProcessDeviceAnnce },
 #endif

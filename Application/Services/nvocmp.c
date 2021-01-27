@@ -130,6 +130,10 @@ a printf function of the form void nvprint(char * str) MUST be
 provided to link the driver. The function need not be functional, but it must
 exist. NVDEBUG also exposes driver global variables for debug and testing.
 
+Not all user-defines (such as NVDEBUG) are supported when using NVOCMP in a
+Linux envrionment. If debugging/logging functionality is required, the
+"nv-debug" or "nv-rdwr" logging flags can be enabled in the cfg INI file.
+
 Configuration:
 NVOCMP_STATS - Places a protected item with driver stats
 NVOCMP_CRCONREAD (on:1 off:0) - item crc is checked on read. Disabling this may
@@ -187,7 +191,7 @@ Requires API's in a crc.h to implement CRC functionality.
 #define NVOCMP_NWSAMEITEM   0           // Not Write Same Item
 #endif
 
-#ifndef NVOCMP_MIGRATE_DISABLED
+#ifndef NVOCMP_MIGRATE_ENABLED
 #define NVOCMP_MIGRATE_DISABLED         // Migration from old NVOCTP disabled by default
 #endif
 

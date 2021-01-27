@@ -451,6 +451,11 @@ ZStatus_t touchLink_TargetSendScanRsp( uint8_t srcEP, afAddrType_t *dstAddr, uin
 {
   ZStatus_t status = ZSuccess;
 
+  if ( touchLinkTargetEnabled == FALSE )
+  {
+    return ZFailure;
+  }
+
   // Make sure we respond only once during a Device Discovery
   if ( touchLinkLastAcceptedTransID != transID )
   {

@@ -1219,7 +1219,13 @@ static ZStatus_t zclLL_ProcessInCmd_GetGrpIDsRsp( zclIncoming_t *pInMsg,
   {
     zclLLGetGrpIDsRsp_t *pRsp;
     uint8_t cnt = pInMsg->pData[ZLL_CMDLEN_GET_GRP_IDS_RSP-1];
-    uint8_t rspLen = sizeof( zclLLGetGrpIDsRsp_t ) + ( cnt * sizeof( grpInfoRec_t ) );
+    uint16_t rspLen = sizeof( zclLLGetGrpIDsRsp_t ) + ( cnt * sizeof( grpInfoRec_t ) );
+    uint16_t actualDataLen = pInMsg->pDataLen;
+
+    if ( rspLen > actualDataLen )
+    {
+      return status;
+    }
 
     pRsp = (zclLLGetGrpIDsRsp_t *)zcl_mem_alloc( rspLen );
     if ( pRsp )
@@ -1230,7 +1236,6 @@ static ZStatus_t zclLL_ProcessInCmd_GetGrpIDsRsp( zclIncoming_t *pInMsg,
       pRsp->total = *pBuf++;
       pRsp->startIndex = *pBuf++;
       pRsp->cnt = *pBuf++;
-      pRsp->grpInfoRec = (grpInfoRec_t *)(pRsp+1);
 
       for ( i = 0; i < cnt; i++ )
       {
@@ -1270,7 +1275,13 @@ static ZStatus_t zclLL_ProcessInCmd_GetEPListRsp( zclIncoming_t *pInMsg,
   {
     zclLLGetEPListRsp_t *pRsp;
     uint8_t cnt = pInMsg->pData[ZLL_CMDLEN_GET_EP_LIST_RSP-1];
-    uint8_t rspLen = sizeof( zclLLGetEPListRsp_t ) + ( cnt * sizeof( epInfoRec_t ) );
+    uint16_t rspLen = sizeof( zclLLGetEPListRsp_t ) + ( cnt * sizeof( epInfoRec_t ) );
+    uint16_t actualDataLen = pInMsg->pDataLen;
+
+    if ( rspLen > actualDataLen )
+    {
+      return status;
+    }
 
     pRsp = (zclLLGetEPListRsp_t *)zcl_mem_alloc( rspLen );
     if ( pRsp )
@@ -1281,7 +1292,6 @@ static ZStatus_t zclLL_ProcessInCmd_GetEPListRsp( zclIncoming_t *pInMsg,
       pRsp->total = *pBuf++;
       pRsp->startIndex = *pBuf++;
       pRsp->cnt = *pBuf++;
-      pRsp->epInfoRec = (epInfoRec_t *)(pRsp+1);
 
       for ( i = 0; i < cnt; i++ )
       {
@@ -1847,7 +1857,13 @@ static ZStatus_t zclLL_ProcessInCmd_DeviceInfoRsp( zclIncoming_t *pInMsg )
   {
     zclLLDeviceInfoRsp_t *pRsp;
     uint8_t cnt = pInMsg->pData[ZLL_CMDLEN_DEVICE_INFO_RSP-1];
-    uint8_t rspLen = sizeof( zclLLDeviceInfoRsp_t ) + ( cnt * sizeof( devInfoRec_t ) );
+    uint16_t rspLen = sizeof( zclLLDeviceInfoRsp_t ) + ( cnt * sizeof( devInfoRec_t ) );
+    uint16_t actualDataLen = pInMsg->pDataLen;
+
+    if ( rspLen > actualDataLen )
+    {
+      return status;
+    }
 
     pRsp = (zclLLDeviceInfoRsp_t *)zcl_mem_alloc( rspLen );
     if ( pRsp )

@@ -1054,7 +1054,20 @@ void bdb_ProcessRespondentList( void )
   }
 
   //Start the timer to process the next respondent
-  OsalPortTimers_startTimer( bdb_TaskID, BDB_RESPONDENT_PROCESS_TIMEOUT, SIMPLEDESC_RESPONSE_TIMEOUT );
+#if ( ZG_BUILD_RTR_TYPE )
+  OsalPortTimers_startTimer( bdb_TaskID, BDB_RESPONDENT_PROCESS_TIMEOUT, SIMPLEDESC_RESPONSE_TIMEOUT_RTR );
+#elif (RFD_RX_ALWAYS_ON_CAPABLE == TRUE)
+  if ( ZG_DEVICE_ENDDEVICE_TYPE && zgRxAlwaysOn == TRUE )
+  {
+    OsalPortTimers_startTimer( bdb_TaskID, BDB_RESPONDENT_PROCESS_TIMEOUT, SIMPLEDESC_RESPONSE_TIMEOUT_RX_ALWAYS_ON );
+  }
+  else
+  {
+    OsalPortTimers_startTimer( bdb_TaskID, BDB_RESPONDENT_PROCESS_TIMEOUT, SIMPLEDESC_RESPONSE_TIMEOUT_SLEEPY );
+  }
+#else
+  OsalPortTimers_startTimer( bdb_TaskID, BDB_RESPONDENT_PROCESS_TIMEOUT, SIMPLEDESC_RESPONSE_TIMEOUT_SLEEPY );
+#endif
 
   //If ParentLost is reported, then do not attempt send SimpleDesc, mark those as pending,
   //if Parent Lost is restored, then these simpleDesc attempts will be restored to 0

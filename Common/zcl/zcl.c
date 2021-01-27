@@ -2154,7 +2154,7 @@ zclProcMsgStatus_t zcl_ProcessMessageMSG( afIncomingMSGPacket_t *pkt )
   endPointDesc_t *epDesc;
   zclIncoming_t inMsg;
   zclLibPlugin_t *pInPlugin;
-  zclDefaultRspCmd_t defautlRspCmd;
+  zclDefaultRspCmd_t defaultRspCmd;
   uint8_t options;
   uint8_t securityEnable;
   uint8_t interPanMsg;
@@ -2233,10 +2233,10 @@ zclProcMsgStatus_t zcl_ProcessMessageMSG( afIncomingMSGPacket_t *pkt )
         // Send a Default Response command back with no Application Link Key security
         zclSetSecurityOption( pkt->endPoint, pkt->clusterId, FALSE );
 
-        defautlRspCmd.statusCode = status;
-        defautlRspCmd.commandID = inMsg.hdr.commandID;
+        defaultRspCmd.statusCode = status;
+        defaultRspCmd.commandID = inMsg.hdr.commandID;
         zcl_SendDefaultRspCmd( inMsg.msg->endPoint, &(inMsg.msg->srcAddr),
-                               inMsg.msg->clusterId, &defautlRspCmd,
+                               inMsg.msg->clusterId, &defaultRspCmd,
                                !inMsg.hdr.fc.direction, true,
                                inMsg.hdr.manuCode, inMsg.hdr.transSeqNum );
 
@@ -2274,6 +2274,24 @@ zclProcMsgStatus_t zcl_ProcessMessageMSG( afIncomingMSGPacket_t *pkt )
         {
           // Couldn't find attribute in the table.
         }
+      }
+      // technically this case could also be ZMemError but it's much more likely that
+      // if inMsg.attrCmd == NULL then one of the parsing APIs returned NULL due to a
+      // malformed command
+      else if ( inMsg.attrCmd == NULL )
+      {
+        if ( UNICAST_MSG( inMsg.msg ) )
+        {
+          defaultRspCmd.statusCode = ZCL_STATUS_MALFORMED_COMMAND;
+          defaultRspCmd.commandID = inMsg.hdr.commandID;
+          zcl_SendDefaultRspCmd( inMsg.msg->endPoint, &(inMsg.msg->srcAddr),
+                                 inMsg.msg->clusterId, &defaultRspCmd,
+                                 !inMsg.hdr.fc.direction, true,
+                                 inMsg.hdr.manuCode, inMsg.hdr.transSeqNum );
+        }
+
+        rawAFMsg = NULL;
+        return ( ZCL_PROC_INVALID );   // malformed command frame
       }
 
       // Free the buffer
@@ -2332,10 +2350,10 @@ zclProcMsgStatus_t zcl_ProcessMessageMSG( afIncomingMSGPacket_t *pkt )
   if ( ( UNICAST_MSG( inMsg.msg ) && ( (inMsg.hdr.fc.disableDefaultRsp == 0) || (status != ZSuccess) ) ) )
   {
     // Send a Default Response command back
-    defautlRspCmd.statusCode = status;
-    defautlRspCmd.commandID = inMsg.hdr.commandID;
+    defaultRspCmd.statusCode = status;
+    defaultRspCmd.commandID = inMsg.hdr.commandID;
     zcl_SendDefaultRspCmd( inMsg.msg->endPoint, &(inMsg.msg->srcAddr),
-                           inMsg.msg->clusterId, &defautlRspCmd,
+                           inMsg.msg->clusterId, &defaultRspCmd,
                            !inMsg.hdr.fc.direction, true,
                            inMsg.hdr.manuCode, inMsg.hdr.transSeqNum );
     defaultResponseSent = TRUE;
@@ -3262,7 +3280,16 @@ uint16_t zclGetAttrDataLength( uint8_t dataType, uint8_t *pData )
 
   if ( dataType == ZCL_DATATYPE_LONG_CHAR_STR || dataType == ZCL_DATATYPE_LONG_OCTET_STR )
   {
-    dataLen = BUILD_UINT16( pData[0], pData[1] ) + 2; // long string length + 2 for length field
+    dataLen = BUILD_UINT16( pData[0], pData[1] );
+    // detect overflow
+    if ( (uint16_t)(dataLen + 2) < (uint16_t)(dataLen) )
+    {
+      dataLen = UINT16_MAX;
+    }
+    else
+    {
+      dataLen += 2; // long string length + 2 for length field
+    }
   }
   else if ( dataType == ZCL_DATATYPE_CHAR_STR || dataType == ZCL_DATATYPE_OCTET_STR )
   {
@@ -3565,6 +3592,13 @@ void *zclParseInReadCmd( zclParseCmd_t *pCmd )
   zclReadCmd_t *readCmd;
   uint8_t *pBuf = pCmd->pData;
 
+  // validate that the incoming payload is a valid size
+  // dataLen should be a multiple of sizeof(uint16_t)
+  if ( pCmd->dataLen % sizeof(uint16_t) != 0 )
+  {
+    return (void *)NULL;
+  }
+
   readCmd = (zclReadCmd_t *)zcl_mem_alloc( sizeof ( zclReadCmd_t ) + pCmd->dataLen );
   if ( readCmd != NULL )
   {
@@ -3599,8 +3633,10 @@ static void *zclParseInReadRspCmd( zclParseCmd_t *pCmd )
   uint8_t *dataPtr;
   uint8_t numAttr = 0;
   uint8_t hdrLen;
-  uint16_t dataLen = 0;
   uint16_t attrDataLen;
+  uint16_t dataLen = 0;
+  uint16_t calculatedBufferLen = 0;
+  uint16_t actualDataLen = pCmd->dataLen;
 
   // find out the number of attributes and the length of attribute data
   while ( pBuf < ( pCmd->pData + pCmd->dataLen ) )
@@ -3609,21 +3645,23 @@ static void *zclParseInReadRspCmd( zclParseCmd_t *pCmd )
 
     numAttr++;
     pBuf += 2; // move pass attribute id
-
     status = *pBuf++;
+    calculatedBufferLen += 3; // status + attrID
+
     if ( status == ZCL_STATUS_SUCCESS )
     {
       uint8_t dataType = *pBuf++;
+      calculatedBufferLen += 1; // dataType
 
       attrDataLen = zclGetAttrDataLength( dataType, pBuf );
+      // calculated data len exceeded actual buffer length, invalid cmd
+      if ( (attrDataLen + calculatedBufferLen) > actualDataLen )
+      {
+        return NULL;
+      }
       pBuf += attrDataLen; // move pass attribute data
 
-      // add padding if needed
-      if ( PADDING_NEEDED( attrDataLen ) )
-      {
-        attrDataLen++;
-      }
-
+      calculatedBufferLen += attrDataLen;
       dataLen += attrDataLen;
     }
   }
@@ -3657,12 +3695,6 @@ static void *zclParseInReadRspCmd( zclParseCmd_t *pCmd )
 
         pBuf += attrDataLen; // move pass attribute data
 
-        // advance attribute data pointer
-        if ( PADDING_NEEDED( attrDataLen ) )
-        {
-          attrDataLen++;
-        }
-
         dataPtr += attrDataLen;
       }
     }
@@ -3695,6 +3727,8 @@ void *zclParseInWriteCmd( zclParseCmd_t *pCmd )
   uint8_t numAttr = 0;
   uint8_t hdrLen;
   uint16_t dataLen = 0;
+  uint16_t calculatedBufferLen = 0;
+  uint16_t actualDataLen = pCmd->dataLen;
 
   // find out the number of attributes and the length of attribute data
   while ( pBuf < ( pCmd->pData + pCmd->dataLen ) )
@@ -3703,18 +3737,19 @@ void *zclParseInWriteCmd( zclParseCmd_t *pCmd )
 
     numAttr++;
     pBuf += 2; // move pass attribute id
-
     dataType = *pBuf++;
 
+    calculatedBufferLen += 3; // attrID + data type
+
     attrDataLen = zclGetAttrDataLength( dataType, pBuf );
+    // calculated data len exceeded actual buffer length, invalid cmd
+    if ( (attrDataLen + calculatedBufferLen) > actualDataLen )
+    {
+      return NULL;
+    }
     pBuf += attrDataLen; // move pass attribute data
 
-    // add padding if needed
-    if ( PADDING_NEEDED( attrDataLen ) )
-    {
-      attrDataLen++;
-    }
-
+    calculatedBufferLen += attrDataLen;
     dataLen += attrDataLen;
   }
 
@@ -3743,12 +3778,6 @@ void *zclParseInWriteCmd( zclParseCmd_t *pCmd )
 
       pBuf += attrDataLen; // move pass attribute data
 
-      // advance attribute data pointer
-      if ( PADDING_NEEDED( attrDataLen ) )
-      {
-        attrDataLen++;
-      }
-
       dataPtr += attrDataLen;
     }
   }
@@ -3774,12 +3803,22 @@ static void *zclParseInWriteRspCmd( zclParseCmd_t *pCmd )
   uint8_t *pBuf = pCmd->pData;
   uint8_t i = 0;
 
+  // validate that the incoming payload is a valid size
+  // if dataLen == 1, writes were successful
+  // otherwise, dataLen should be a multiple of
+  // sizeof(zclWriteRspStatus_t)
+  if ( (pCmd->dataLen > 1) &&
+       (pCmd->dataLen % sizeof(zclWriteRspStatus_t) != 0) )
+  {
+    return (void *)NULL;
+  }
+
   writeRspCmd = (zclWriteRspCmd_t *)zcl_mem_alloc( sizeof ( zclWriteRspCmd_t ) + pCmd->dataLen );
   if ( writeRspCmd != NULL )
   {
     if ( pCmd->dataLen == 1 )
     {
-      // special case when all writes were successfull
+      // special case when all writes were successful
       writeRspCmd->attrList[i++].status = *pBuf;
     }
     else
@@ -3820,8 +3859,10 @@ void *zclParseInConfigReportCmd( zclParseCmd_t *pCmd )
   uint8_t numAttr = 0;
   uint8_t dataType;
   uint8_t hdrLen;
-  uint16_t dataLen = 0;
   uint8_t reportChangeLen; // length of Reportable Change field
+  uint16_t dataLen = 0;
+  uint16_t calculatedBufferLen = 0;
+  uint16_t actualDataLen = pCmd->dataLen;
 
   // Calculate the length of the Request command
   while ( pBuf < ( pCmd->pData + pCmd->dataLen ) )
@@ -3831,31 +3872,34 @@ void *zclParseInConfigReportCmd( zclParseCmd_t *pCmd )
     numAttr++;
     direction = *pBuf++;
     pBuf += 2; // move pass the attribute ID
+    calculatedBufferLen += 3; // direction + attrID
 
     // Is there a Reportable Change field?
     if ( direction == ZCL_SEND_ATTR_REPORTS )
     {
       dataType = *pBuf++;
       pBuf += 4; // move pass the Min and Max Reporting Intervals
+      calculatedBufferLen += 5; // attr data type + min/max reporting intervals
 
       // For attributes of 'discrete' data types this field is omitted
       if ( zclAnalogDataType( dataType ) )
       {
         reportChangeLen = zclGetDataTypeLength( dataType );
-        pBuf += reportChangeLen;
-
-        // add padding if needed
-        if ( PADDING_NEEDED( reportChangeLen ) )
+        // calculated data len exceeded actual buffer length, invalid cmd
+        if ( (reportChangeLen + calculatedBufferLen) > actualDataLen )
         {
-          reportChangeLen++;
+          return NULL;
         }
+        pBuf += reportChangeLen; // move pass attribute data
 
+        calculatedBufferLen += reportChangeLen;
         dataLen += reportChangeLen;
       }
     }
     else
     {
       pBuf += 2; // move pass the Timeout Period
+      calculatedBufferLen += 2; // timeout period
     }
   } // while loop
 
@@ -3896,12 +3940,6 @@ void *zclParseInConfigReportCmd( zclParseCmd_t *pCmd )
           reportChangeLen = zclGetDataTypeLength( reportRec->dataType );
           pBuf += reportChangeLen;
 
-          // advance attribute data pointer
-          if ( PADDING_NEEDED( reportChangeLen ) )
-          {
-            reportChangeLen++;
-          }
-
           dataPtr += reportChangeLen;
         }
       }
@@ -3937,20 +3975,40 @@ static void *zclParseInConfigReportRspCmd( zclParseCmd_t *pCmd )
   uint8_t *pBuf = pCmd->pData;
   uint8_t numAttr;
 
-  numAttr = pCmd->dataLen / ( 1 + 1 + 2 ); // Status + Direction + Attribute ID
+  // validate that the incoming payload is a valid size
+  // if dataLen == 1, report configs were successful
+  // otherwise, dataLen should be a multiple of
+  // sizeof(zclCfgReportStatus_t)
+  if ( (pCmd->dataLen > 1) &&
+       (pCmd->dataLen % sizeof(zclCfgReportStatus_t) != 0) )
+  {
+    return (void *)NULL;
+  }
+  else
+  {
+    numAttr = pCmd->dataLen / sizeof(zclCfgReportStatus_t);
+  }
 
   cfgReportRspCmd = (zclCfgReportRspCmd_t *)zcl_mem_alloc( sizeof( zclCfgReportRspCmd_t )
                                             + ( numAttr * sizeof( zclCfgReportStatus_t ) ) );
   if ( cfgReportRspCmd != NULL )
   {
-    uint8_t i;
-    cfgReportRspCmd->numAttr = numAttr;
-    for ( i = 0; i < cfgReportRspCmd->numAttr; i++ )
+    uint8_t i = 0;
+    if ( pCmd->dataLen == 1 )
     {
-      cfgReportRspCmd->attrList[i].status = *pBuf++;
-      cfgReportRspCmd->attrList[i].direction = *pBuf++;
-      cfgReportRspCmd->attrList[i].attrID = BUILD_UINT16( pBuf[0], pBuf[1] );
-      pBuf += 2;
+      // special case when all writes were successful
+      cfgReportRspCmd->attrList[i++].status = *pBuf;
+    }
+    else
+    {
+      cfgReportRspCmd->numAttr = numAttr;
+      for ( i = 0; i < cfgReportRspCmd->numAttr; i++ )
+      {
+        cfgReportRspCmd->attrList[i].status = *pBuf++;
+        cfgReportRspCmd->attrList[i].direction = *pBuf++;
+        cfgReportRspCmd->attrList[i].attrID = BUILD_UINT16( pBuf[0], pBuf[1] );
+        pBuf += 2;
+      }
     }
   }
 
@@ -3977,7 +4035,16 @@ void *zclParseInReadReportCfgCmd( zclParseCmd_t *pCmd )
   uint8_t *pBuf = pCmd->pData;
   uint8_t numAttr;
 
-  numAttr = pCmd->dataLen / ( 1 + 2 ); // Direction + Attribute ID
+  // validate that the incoming payload is a valid size
+  // dataLen should be a multiple of sizeof(zclReadReportCfgRec_t)
+  if ( pCmd->dataLen % sizeof(zclReadReportCfgRec_t) != 0 )
+  {
+    return (void *)NULL;
+  }
+  else
+  {
+    numAttr = pCmd->dataLen / sizeof(zclReadReportCfgRec_t);
+  }
 
   readReportCfgCmd = (zclReadReportCfgCmd_t *)zcl_mem_alloc( sizeof( zclReadReportCfgCmd_t )
                                                   + ( numAttr * sizeof( zclReadReportCfgRec_t ) ) );
@@ -4019,6 +4086,8 @@ static void *zclParseInReadReportCfgRspCmd( zclParseCmd_t *pCmd )
   uint8_t numAttr = 0;
   uint8_t hdrLen;
   uint16_t dataLen = 0;
+  uint16_t calculatedBufferLen = 0;
+  uint16_t actualDataLen = pCmd->dataLen;
 
   // Calculate the length of the response command
   while ( pBuf < ( pCmd->pData + pCmd->dataLen ) )
@@ -4030,6 +4099,7 @@ static void *zclParseInReadReportCfgRspCmd( zclParseCmd_t *pCmd )
     status = *pBuf++;
     direction = *pBuf++;
     pBuf += 2; // move pass the attribute ID
+    calculatedBufferLen += 4; // status + direction + attrID
 
     if ( status == ZCL_STATUS_SUCCESS )
     {
@@ -4037,25 +4107,27 @@ static void *zclParseInReadReportCfgRspCmd( zclParseCmd_t *pCmd )
       {
         uint8_t dataType = *pBuf++;
         pBuf += 4; // move pass the Min and Max Reporting Intervals
+        calculatedBufferLen += 5; // attr data type + min/max reporting intervals
 
         // For attributes of 'discrete' data types this field is omitted
         if ( zclAnalogDataType( dataType ) )
         {
           reportChangeLen = zclGetDataTypeLength( dataType );
-          pBuf += reportChangeLen;
-
-          // add padding if needed
-          if ( PADDING_NEEDED( reportChangeLen ) )
+          // calculated data len exceeded actual buffer length, invalid cmd
+          if ( (reportChangeLen + calculatedBufferLen) > actualDataLen )
           {
-            reportChangeLen++;
+            return NULL;
           }
+          pBuf += reportChangeLen; // move pass attribute data
 
+          calculatedBufferLen += reportChangeLen;
           dataLen += reportChangeLen;
         }
       }
       else
       {
         pBuf += 2; // move pass the Timeout field
+        calculatedBufferLen += 2; // timeout period
       }
     }
   } // while loop
@@ -4097,12 +4169,6 @@ static void *zclParseInReadReportCfgRspCmd( zclParseCmd_t *pCmd )
             reportChangeLen = zclGetDataTypeLength( reportRspRec->dataType );
             pBuf += reportChangeLen;
 
-            // advance attribute data pointer
-            if ( PADDING_NEEDED( reportChangeLen ) )
-            {
-              reportChangeLen++;
-            }
-
             dataPtr += reportChangeLen;
           }
         }
@@ -4141,6 +4207,8 @@ void *zclParseInReportCmd( zclParseCmd_t *pCmd )
   uint8_t numAttr = 0;
   uint8_t hdrLen;
   uint16_t dataLen = 0;
+  uint16_t calculatedBufferLen = 0;
+  uint16_t actualDataLen = pCmd->dataLen;
 
   // find out the number of attributes and the length of attribute data
   while ( pBuf < ( pCmd->pData + pCmd->dataLen ) )
@@ -4149,18 +4217,18 @@ void *zclParseInReportCmd( zclParseCmd_t *pCmd )
 
     numAttr++;
     pBuf += 2; // move pass attribute id
-
     dataType = *pBuf++;
+    calculatedBufferLen += 3; // attrID + data type
 
     attrDataLen = zclGetAttrDataLength( dataType, pBuf );
+    // calculated data len exceeded actual buffer length, invalid cmd
+    if ( (attrDataLen + calculatedBufferLen) > actualDataLen )
+    {
+      return NULL;
+    }
     pBuf += attrDataLen; // move pass attribute data
 
-    // add padding if needed
-    if ( PADDING_NEEDED( attrDataLen ) )
-    {
-      attrDataLen++;
-    }
-
+    calculatedBufferLen += attrDataLen;
     dataLen += attrDataLen;
   }
 
@@ -4187,12 +4255,6 @@ void *zclParseInReportCmd( zclParseCmd_t *pCmd )
       reportRec->attrData = dataPtr;
 
       pBuf += attrDataLen; // move pass attribute data
-
-      // advance attribute data pointer
-      if ( PADDING_NEEDED( attrDataLen ) )
-      {
-        attrDataLen++;
-      }
 
       dataPtr += attrDataLen;
     }
@@ -4270,12 +4332,23 @@ void *zclParseInDiscAttrsCmd( zclParseCmd_t *pCmd )
  *
  * @return  pointer to the parsed command structure
  */
-#define ZCLDISCRSPCMD_DATALEN(a)  ((a)-1) // data len - Discovery Complete
 static void *zclParseInDiscAttrsRspCmd( zclParseCmd_t *pCmd )
 {
   zclDiscoverAttrsRspCmd_t *pDiscoverRspCmd;
   uint8_t *pBuf = pCmd->pData;
-  uint8_t numAttr = ZCLDISCRSPCMD_DATALEN(pCmd->dataLen) / ( 2 + 1 ); // Attr ID + Data Type
+  uint8_t numAttr;
+
+  // validate that the incoming payload is a valid size
+  // dataLen should be a multiple of sizeof(zclCfgReportStatus_t)
+  // first byte of dataLen is discComplete field, exclude this byte
+  if ( (pCmd->dataLen - 1) % sizeof(zclCfgReportStatus_t) != 0 )
+  {
+    return (void *)NULL;
+  }
+  else
+  {
+    numAttr = (pCmd->dataLen - 1) / sizeof(zclCfgReportStatus_t);
+  }
 
   pDiscoverRspCmd = (zclDiscoverAttrsRspCmd_t *)zcl_mem_alloc( sizeof ( zclDiscoverAttrsRspCmd_t ) +
                     ( numAttr * sizeof(zclDiscoverAttrInfo_t) ) );
@@ -4337,12 +4410,14 @@ void *zclParseInDiscCmdsCmd( zclParseCmd_t *pCmd )
  *
  * @return  pointer to the parsed command structure
  */
-#define ZCLDISCRSPCMD_DATALEN(a)  ((a)-1) // data len - Discovery Complete
 static void *zclParseInDiscCmdsRspCmd( zclParseCmd_t *pCmd )
 {
   zclDiscoverCmdsCmdRsp_t *pDiscoverRspCmd;
   uint8_t *pBuf = pCmd->pData;
-  uint8_t numCmds = ZCLDISCRSPCMD_DATALEN(pCmd->dataLen);  // length of command ID variable array
+  uint8_t numCmds;
+
+  // first byte of dataLen is discComplete field, exclude this byte
+  numCmds = (pCmd->dataLen - 1) / sizeof(uint8_t);
 
   // allocate memory for size of structure plus variable array
   pDiscoverRspCmd = (zclDiscoverCmdsCmdRsp_t *)zcl_mem_alloc( sizeof ( zclDiscoverCmdsCmdRsp_t ) +
@@ -4375,13 +4450,24 @@ static void *zclParseInDiscCmdsRspCmd( zclParseCmd_t *pCmd )
  *
  * @return  pointer to the parsed command structure
  */
-#define ZCLDISCRSPCMD_DATALEN(a)  ((a)-1) // data len - Discovery Complete
 static void *zclParseInDiscAttrsExtRspCmd( zclParseCmd_t *pCmd )
 {
   zclDiscoverAttrsExtRsp_t *pDiscoverRspCmd;
   uint8_t i;
   uint8_t *pBuf = pCmd->pData;
-  uint8_t numAttrs = ZCLDISCRSPCMD_DATALEN(pCmd->dataLen) / ( 2 + 1 + 1 ); // Attr ID + Data Type + Access Control
+  uint8_t numAttrs;
+
+  // validate that the incoming payload is a valid size
+  // dataLen should be a multiple of sizeof(zclExtAttrInfo_t)
+  // first byte of dataLen is discComplete field, exclude this byte
+  if ( (pCmd->dataLen - 1) % sizeof(zclExtAttrInfo_t) != 0 )
+  {
+    return (void *)NULL;
+  }
+  else
+  {
+    numAttrs = (pCmd->dataLen - 1) / sizeof(zclExtAttrInfo_t);
+  }
 
   pDiscoverRspCmd = (zclDiscoverAttrsExtRsp_t *)zcl_mem_alloc( sizeof ( zclDiscoverAttrsExtRsp_t ) +
                     ( numAttrs * sizeof(zclExtAttrInfo_t) ) );
@@ -4736,12 +4822,6 @@ static uint8_t zclProcessInWriteUndividedCmd( zclIncoming_t *pInMsg )
                                              statusRec->attrID );
     }
 
-    // add padding if needed
-    if ( PADDING_NEEDED( dataLen ) )
-    {
-      dataLen++;
-    }
-
     curLen += dataLen;
   } // for loop
 
@@ -4809,12 +4889,6 @@ static uint8_t zclProcessInWriteUndividedCmd( zclIncoming_t *pInMsg )
         // Since this write failed, we need to revert all the pervious writes
         zclRevertWriteUndividedCmd( pInMsg, curWriteRec, i);
         break;
-      }
-
-      // add padding if needed
-      if ( PADDING_NEEDED( dataLen ) )
-      {
-        dataLen++;
       }
 
       curDataPtr += dataLen;

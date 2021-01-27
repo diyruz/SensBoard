@@ -412,6 +412,7 @@ typedef struct
 
     // MAC status values
 #define ZMacSuccess                 0x00
+#define ZMacTxAborted               0x1D // internal use (for DMM TX Abort)
 #define ZMacBeaconLoss              0xe0
 #define ZMacChannelAccessFailure    0xe1
 #define ZMacDenied                  0xe2

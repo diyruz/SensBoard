@@ -52,6 +52,8 @@
 /*********************************************************************
  * TYPEDEFS
  */
+//! \brief Callback function type for starting bdb finding and binding
+typedef void (*tl_BDBFindingBindingCb_t)(void);
 
 /*********************************************************************
  * VARIABLES
@@ -67,6 +69,10 @@
  */
 void touchLinkInitiatorApp_Init(uint8_t  zclSampleApp_Entity);
 
+/*
+ * @brief       Register application finding and binding callback
+ */
+extern void touchLinkApp_registerFindingBindingCb(tl_BDBFindingBindingCb_t fbCb);
 
 /*********************************************************************
 *********************************************************************/

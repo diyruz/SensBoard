@@ -390,6 +390,8 @@ extern uint8_t zTouchLinkNwkStartRtr;
 
 extern uint8_t zgAllowRadioRxOff;
 
+extern uint8_t zgRxAlwaysOn;
+
 /*********************************************************************
  * APS GLOBAL VARIABLES
  */

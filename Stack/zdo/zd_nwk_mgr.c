@@ -554,7 +554,8 @@ static void ZDNwkMgr_ProcessMgmtNwkUpdateReq( zdoIncomingMsg_t *inMsg )
   {
     // Request is to change Channel. The command provide a new active
     // channel as a single channel in the channelMask.
-    if ( Req.nwkUpdateId > _NIB.nwkUpdateId )
+    // Only process when the nwkUpdateId is more recent (accounting for uint8 wraparound)
+    if ( Req.nwkUpdateId > _NIB.nwkUpdateId || ( Req.nwkUpdateId == 0 && _NIB.nwkUpdateId == 0xFF ) )
     {
       uint8_t i;
 
@@ -588,7 +589,8 @@ static void ZDNwkMgr_ProcessMgmtNwkUpdateReq( zdoIncomingMsg_t *inMsg )
   else if ( Req.scanDuration == 0xFF )
   {
     // Request is to change apsChannelMask and nwkManagerAddr
-    if ( Req.nwkUpdateId > _NIB.nwkUpdateId )
+    // Only process when the nwkUpdateId is more recent (accounting for uint8 wraparound)
+    if ( Req.nwkUpdateId > _NIB.nwkUpdateId || ( Req.nwkUpdateId == 0 && _NIB.nwkUpdateId == 0xFF ) )
     {
       NLME_SetUpdateID(Req.nwkUpdateId); // Set the updateID in the beacon
 

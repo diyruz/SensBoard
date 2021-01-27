@@ -128,7 +128,7 @@ extern uint8_t APS_AllowDataRequests;
 extern uint32_t APS_lastDupTime;
 
 
-#if ( ZG_BUILD_ENDDEVICE_TYPE ) && ( RFD_RCVC_ALWAYS_ON==TRUE )
+#if ( ZG_BUILD_ENDDEVICE_TYPE ) && ( RFD_RX_ALWAYS_ON_CAPABLE == TRUE )
   extern apsEndDeviceBroadcast_t apsEndDeviceBroadcastTable[];
 #endif
 
@@ -163,7 +163,7 @@ extern void APS_CmdInd( APS_CmdInd_t* ind );
  */
 extern void APS_ReflectorInit( void );
 
-#if ( ZG_BUILD_ENDDEVICE_TYPE ) && ( RFD_RCVC_ALWAYS_ON==TRUE )
+#if ( ZG_BUILD_ENDDEVICE_TYPE ) && ( RFD_RX_ALWAYS_ON_CAPABLE == TRUE )
   /*
    * APS_InitEndDeviceBroadcastTable - Initialize the End Device Broadcast table
    */
@@ -173,7 +173,7 @@ extern void APS_ReflectorInit( void );
    * APS_EndDeviceBroadcastCheck
    */
   extern uint8_t APS_EndDeviceBroadcastCheck( NLDE_FrameFormat_t *ff );
-#endif // ( ZG_BUILD_ENDDEVICE_TYPE ) && ( RFD_RCVC_ALWAYS_ON==TRUE )
+#endif // ( ZG_BUILD_ENDDEVICE_TYPE ) && ( RFD_RX_ALWAYS_ON_CAPABLE == TRUE )
 
 
 /*********************************************************************

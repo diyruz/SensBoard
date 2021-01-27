@@ -1807,8 +1807,18 @@ ZStatus_t bdb_rejoinNwk(void)
 
   if(rejoinStatus == ZSuccess)
   {
-    uint8_t tmp = true;
-    ZMacSetReq( ZMacRxOnIdle, &tmp ); // Set receiver always on during rejoin
+#if ( RFD_RX_ALWAYS_ON_CAPABLE == TRUE )
+    if ( ZG_DEVICE_RTR_TYPE || zgRxAlwaysOn == TRUE )
+    {
+      uint8_t tmp = true;
+      ZMacSetReq( ZMacRxOnIdle, &tmp ); // Set receiver always on during rejoin
+    }
+    else
+#endif
+    // enable rejoin poll rate
+    {
+      nwk_SetCurrentPollRateType(POLL_RATE_TYPE_JOIN_REJOIN,TRUE);
+    }
 
     // Perform Secure or Unsecure Rejoin depending on available configuration
     if ( ((zgBdbAttemptUnsecureRejoin == FALSE) ||
@@ -2111,12 +2121,7 @@ ZStatus_t bdb_joinProcess(networkDesc_t *pChosenNwk)
     // The receiver is on, turn network layer polling off.
     if ( ZDO_Config_Node_Descriptor.CapabilityFlags & CAPINFO_RCVR_ON_IDLE )
     {
-      // for an End Device with NO Child Table Management process or for a Router
-      if ( ( ZG_DEVICE_RTR_TYPE )  ||
-           ( (ZG_DEVICE_ENDDEVICE_TYPE) && ( zgChildAgingEnable == FALSE ) ) )
-      {
-        nwk_SetCurrentPollRateType(POLL_RATE_RX_ON_TRUE,TRUE);
-      }
+      nwk_SetCurrentPollRateType(POLL_RATE_RX_ON_TRUE,TRUE);
     }
     else
     {

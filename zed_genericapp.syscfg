@@ -1,55 +1,55 @@
 /**
  * These arguments were used when this file was generated. They will be automatically applied on subsequent loads
  * via the GUI or CLI. Run CLI with '--help' for additional information on how to override these arguments.
- * @cliArgs --board "/ti/boards/CC26X2R1_LAUNCHXL" --product "simplelink_cc13x2_26x2_sdk@4.30.00.54"
- * @versions {"data":"2020090214","timestamp":"2020090214","tool":"1.6.0+1543","templates":"2020090214"}
+ * @cliArgs --board "/ti/boards/CC26X2R1_LAUNCHXL" --product "simplelink_cc13x2_26x2_sdk@4.40.00.44"
+ * @versions {"data":"2021010520","timestamp":"2021010520","tool":"1.7.0+1746","templates":null}
  */
 
 /**
  * Import the modules used in this configuration.
  */
-const CCFG        = scripting.addModule("/ti/devices/CCFG");
-const rfdesign    = scripting.addModule("/ti/devices/radioconfig/rfdesign");
-const ADC         = scripting.addModule("/ti/drivers/ADC", {}, false);
-const ADC1        = ADC.addInstance();
-const ADC2        = ADC.addInstance();
-const ADC3        = ADC.addInstance();
-const AESCBC      = scripting.addModule("/ti/drivers/AESCBC");
-const AESCBC1     = AESCBC.addInstance();
-const AESCCM      = scripting.addModule("/ti/drivers/AESCCM");
-const AESCCM1     = AESCCM.addInstance();
-const AESECB      = scripting.addModule("/ti/drivers/AESECB");
-const AESECB1     = AESECB.addInstance();
-const DMA         = scripting.addModule("/ti/drivers/DMA");
-const ECDH        = scripting.addModule("/ti/drivers/ECDH");
-const ECDH1       = ECDH.addInstance();
-const ECDSA       = scripting.addModule("/ti/drivers/ECDSA");
-const ECDSA1      = ECDSA.addInstance();
-const ECJPAKE     = scripting.addModule("/ti/drivers/ECJPAKE");
-const ECJPAKE1    = ECJPAKE.addInstance();
-const GPIO        = scripting.addModule("/ti/drivers/GPIO", {}, false);
-const GPIO1       = GPIO.addInstance();
-const GPIO2       = GPIO.addInstance();
-const GPIO3       = GPIO.addInstance();
-const NVS         = scripting.addModule("/ti/drivers/NVS");
-const NVS1        = NVS.addInstance();
-const Power       = scripting.addModule("/ti/drivers/Power");
-const RF          = scripting.addModule("/ti/drivers/RF");
-const SHA2        = scripting.addModule("/ti/drivers/SHA2");
-const SHA21       = SHA2.addInstance();
-const TRNG        = scripting.addModule("/ti/drivers/TRNG");
-const TRNG1       = TRNG.addInstance();
-const Temperature = scripting.addModule("/ti/drivers/Temperature");
-const Button      = scripting.addModule("/ti/drivers/apps/Button");
-const Button1     = Button.addInstance();
-const Button2     = Button.addInstance();
-const Button3     = Button.addInstance();
-const Button4     = Button.addInstance();
-const Button5     = Button.addInstance();
-const LED         = scripting.addModule("/ti/drivers/apps/LED");
-const LED1        = LED.addInstance();
-const LED2        = LED.addInstance();
-const zstack      = scripting.addModule("/ti/zstack/zstack");
+const CCFG     = scripting.addModule("/ti/devices/CCFG");
+const rfdesign = scripting.addModule("/ti/devices/radioconfig/rfdesign");
+const ADC      = scripting.addModule("/ti/drivers/ADC", {}, false);
+const ADC1     = ADC.addInstance();
+const ADC2     = ADC.addInstance();
+const ADC3     = ADC.addInstance();
+const AESCBC   = scripting.addModule("/ti/drivers/AESCBC");
+const AESCBC1  = AESCBC.addInstance();
+const AESCCM   = scripting.addModule("/ti/drivers/AESCCM");
+const AESCCM1  = AESCCM.addInstance();
+const AESECB   = scripting.addModule("/ti/drivers/AESECB");
+const AESECB1  = AESECB.addInstance();
+const DMA      = scripting.addModule("/ti/drivers/DMA");
+const ECDH     = scripting.addModule("/ti/drivers/ECDH");
+const ECDH1    = ECDH.addInstance();
+const ECDSA    = scripting.addModule("/ti/drivers/ECDSA");
+const ECDSA1   = ECDSA.addInstance();
+const ECJPAKE  = scripting.addModule("/ti/drivers/ECJPAKE");
+const ECJPAKE1 = ECJPAKE.addInstance();
+const GPIO     = scripting.addModule("/ti/drivers/GPIO", {}, false);
+const GPIO8    = GPIO.addInstance();
+const GPIO9    = GPIO.addInstance();
+const GPIO10   = GPIO.addInstance();
+const NVS      = scripting.addModule("/ti/drivers/NVS");
+const NVS1     = NVS.addInstance();
+const Power    = scripting.addModule("/ti/drivers/Power");
+const RF       = scripting.addModule("/ti/drivers/RF");
+const SHA2     = scripting.addModule("/ti/drivers/SHA2");
+const SHA21    = SHA2.addInstance();
+const TRNG     = scripting.addModule("/ti/drivers/TRNG");
+const TRNG1    = TRNG.addInstance();
+const UART     = scripting.addModule("/ti/drivers/UART");
+const Button   = scripting.addModule("/ti/drivers/apps/Button");
+const Button1  = Button.addInstance();
+const Button2  = Button.addInstance();
+const Button3  = Button.addInstance();
+const Button4  = Button.addInstance();
+const Button5  = Button.addInstance();
+const LED      = scripting.addModule("/ti/drivers/apps/LED");
+const LED1     = LED.addInstance();
+const LED2     = LED.addInstance();
+const zstack   = scripting.addModule("/ti/zstack/zstack");
 
 /**
  * Write custom configuration values to the imported modules.
@@ -60,21 +60,16 @@ CCFG.dioBootloaderBackdoor    = 13;
 CCFG.levelBootloaderBackdoor  = "Active low";
 CCFG.ccfgTemplate.$name       = "ti_devices_CCFGTemplate0";
 
-ADC1.samplingDuration     = "10.6 us";
 ADC1.$name                = "CONFIG_ADC_CH1";
-ADC1.adc.adcPin.$assign   = "boosterpack.24";
-ADC1.adcPinInstance.$name = "CONFIG_PIN_4";
-ADC1.adcPinInstance.pull  = "Pull Up";
+ADC1.adcPinInstance.$name = "CONFIG_PIN_1";
 
 ADC2.$name                = "CONFIG_ADC_CH2";
-ADC2.samplingDuration     = "10.6 us";
 ADC2.adc.adcPin.$assign   = "boosterpack.23";
-ADC2.adcPinInstance.$name = "CONFIG_PIN_5";
+ADC2.adcPinInstance.$name = "CONFIG_PIN_2";
 ADC2.adcPinInstance.pull  = "Pull Up";
 
-ADC3.internalSignal   = "Battery Channel";
-ADC3.$name            = "CONFIG_ADC_VDDS";
-ADC3.samplingDuration = "10.6 us";
+ADC3.$name          = "CONFIG_ADC_VDDS";
+ADC3.internalSignal = "Battery Channel";
 
 AESCBC1.$name = "CONFIG_AESCBC_0";
 
@@ -90,20 +85,18 @@ ECDSA1.$name = "CONFIG_ECDSA_0";
 
 ECJPAKE1.$name = "CONFIG_ECJPAKE_0";
 
-GPIO1.mode              = "Output";
-GPIO1.$name             = "CONFIG_GPIO_POWER_CH1";
-GPIO1.gpioPin.$assign   = "boosterpack.32";
-GPIO1.pinInstance.$name = "CONFIG_PIN_3";
+GPIO8.$name             = "CONFIG_GPIO_POWER_CH1";
+GPIO8.mode              = "Output";
+GPIO8.gpioPin.$assign   = "boosterpack.32";
+GPIO8.pinInstance.$name = "CONFIG_PIN_5";
 
-GPIO2.mode              = "Output";
-GPIO2.$name             = "CONFIG_GPIO_POWER_CH2";
-GPIO2.gpioPin.$assign   = "boosterpack.31";
-GPIO2.pinInstance.$name = "CONFIG_PIN_6";
+GPIO9.$name             = "CONFIG_GPIO_POWER_CH2";
+GPIO9.gpioPin.$assign   = "boosterpack.31";
+GPIO9.pinInstance.$name = "CONFIG_PIN_6";
 
-GPIO3.mode              = "Output";
-GPIO3.$name             = "CONFIG_GPIO_POWER_CH3";
-GPIO3.gpioPin.$assign   = "boosterpack.10";
-GPIO3.pinInstance.$name = "CONFIG_PIN_7";
+GPIO10.$name             = "CONFIG_GPIO_POWER_CH3";
+GPIO10.gpioPin.$assign   = "boosterpack.10";
+GPIO10.pinInstance.$name = "CONFIG_PIN_7";
 
 NVS1.$name                    = "CONFIG_NVSINTERNAL";
 NVS1.internalFlash.$name      = "ti_drivers_nvs_NVSCC26XX0";
@@ -125,19 +118,19 @@ Button2.gpioPin.$name             = "CONFIG_GPIO_BTN2";
 Button2.gpioPin.pinInstance.$name = "CONFIG_PIN_BTN2";
 
 Button3.$name                     = "CONFIG_BUTTON_CH1";
-Button3.gpioPin.$name             = "CONFIG_GPIO_BTN_CH1";
+Button3.gpioPin.$name             = "CONFIG_GPIO_0";
 Button3.gpioPin.gpioPin.$assign   = "boosterpack.5";
 Button3.gpioPin.pinInstance.$name = "CONFIG_PIN_0";
 
 Button4.$name                     = "CONFIG_BUTTON_CH2";
-Button4.gpioPin.$name             = "CONFIG_GPIO_BTN_CH2";
+Button4.gpioPin.$name             = "CONFIG_GPIO_1";
 Button4.gpioPin.gpioPin.$assign   = "boosterpack.8";
-Button4.gpioPin.pinInstance.$name = "CONFIG_PIN_1";
+Button4.gpioPin.pinInstance.$name = "CONFIG_PIN_3";
 
 Button5.$name                     = "CONFIG_BUTTON_CH3";
-Button5.gpioPin.$name             = "CONFIG_GPIO_BTN_CH3";
+Button5.gpioPin.$name             = "CONFIG_GPIO_2";
 Button5.gpioPin.gpioPin.$assign   = "boosterpack.9";
-Button5.gpioPin.pinInstance.$name = "CONFIG_PIN_2";
+Button5.gpioPin.pinInstance.$name = "CONFIG_PIN_4";
 
 LED1.$name                     = "CONFIG_LED_RED";
 LED1.$hardware                 = system.deviceData.board.components.LED_RED;
@@ -153,10 +146,9 @@ zstack.deviceType                            = "zed";
 zstack.deviceTypeReadOnly                    = true;
 zstack.touchlink.$name                       = "ti_zstack_touchlink_zstack_touchlink0";
 zstack.pm.$name                              = "ti_zstack_pm_zstack_pm0";
-zstack.pm.pollPeriod                         = 3000000000;
 zstack.rf.$name                              = "ti_zstack_rf_zstack_rf0";
-zstack.rf.txPower                            = "5";
 zstack.rf.primaryChannels                    = [11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26];
+zstack.rf.txPower                            = "5";
 zstack.rf.radioConfig.$name                  = "ti_devices_radioconfig_settings_ieee_15_40";
 zstack.rf.radioConfig.codeExportConfig.$name = "ti_devices_radioconfig_code_export_param0";
 zstack.network.$name                         = "ti_zstack_network_zstack_network0";
@@ -164,7 +156,6 @@ zstack.advanced.$name                        = "ti_zstack_advanced_zstack_advanc
 zstack.advanced.routing.$name                = "ti_zstack_advanced_zstack_routing0";
 zstack.advanced.packetSending.$name          = "ti_zstack_advanced_zstack_packet_sending0";
 zstack.advanced.tableSize.$name              = "ti_zstack_advanced_zstack_table_size0";
-zstack.advanced.tableSize.bindingTableSize   = 10;
 
 /**
  * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
@@ -172,6 +163,7 @@ zstack.advanced.tableSize.bindingTableSize   = 10;
  * re-solve from scratch.
  */
 ADC1.adc.$suggestSolution                = "ADC0";
+ADC1.adc.adcPin.$suggestSolution         = "boosterpack.2";
 ADC2.adc.$suggestSolution                = "ADC0";
 Button1.gpioPin.gpioPin.$suggestSolution = "boosterpack.13";
 Button2.gpioPin.gpioPin.$suggestSolution = "boosterpack.12";

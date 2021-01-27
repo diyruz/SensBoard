@@ -1322,7 +1322,14 @@ static ZStatus_t bdbTL_ProcessInCmd_GetGrpIDsRsp( zclIncoming_t *pInMsg,
   {
     bdbTLGetGrpIDsRsp_t *pRsp;
     uint8_t cnt = pInMsg->pData[TOUCHLINK_CMDLEN_GET_GRP_IDS_RSP-1];
-    uint8_t rspLen = sizeof( bdbTLGetGrpIDsRsp_t ) + ( cnt * sizeof( grpInfoRec_t ) );
+    // total + startIndex + cnt
+    uint16_t rspLen = sizeof( bdbTLGetGrpIDsRsp_t) + ( cnt * sizeof( grpInfoRec_t ) );
+    uint16_t actualDataLen = pInMsg->pDataLen;
+
+    if ( rspLen > actualDataLen )
+    {
+      return status;
+    }
 
     pRsp = (bdbTLGetGrpIDsRsp_t *)zcl_mem_alloc( rspLen );
     if ( pRsp )
@@ -1333,7 +1340,6 @@ static ZStatus_t bdbTL_ProcessInCmd_GetGrpIDsRsp( zclIncoming_t *pInMsg,
       pRsp->total = *pBuf++;
       pRsp->startIndex = *pBuf++;
       pRsp->cnt = *pBuf++;
-      pRsp->grpInfoRec = (grpInfoRec_t *)(pRsp+1);
 
       for ( i = 0; i < cnt; i++ )
       {
@@ -1373,7 +1379,14 @@ static ZStatus_t bdbTL_ProcessInCmd_GetEPListRsp( zclIncoming_t *pInMsg,
   {
     bdbTLGetEPListRsp_t *pRsp;
     uint8_t cnt = pInMsg->pData[TOUCHLINK_CMDLEN_GET_EP_LIST_RSP-1];
-    uint8_t rspLen = sizeof( bdbTLGetEPListRsp_t ) + ( cnt * sizeof( epInfoRec_t ) );
+    // total + startIndex + cnt
+    uint16_t rspLen = sizeof( bdbTLGetEPListRsp_t ) + ( cnt * sizeof( epInfoRec_t ) );
+    uint16_t actualDataLen = pInMsg->pDataLen;
+
+    if ( rspLen > actualDataLen )
+    {
+      return status;
+    }
 
     pRsp = (bdbTLGetEPListRsp_t *)zcl_mem_alloc( rspLen );
     if ( pRsp )
@@ -1384,7 +1397,6 @@ static ZStatus_t bdbTL_ProcessInCmd_GetEPListRsp( zclIncoming_t *pInMsg,
       pRsp->total = *pBuf++;
       pRsp->startIndex = *pBuf++;
       pRsp->cnt = *pBuf++;
-      pRsp->epInfoRec = (epInfoRec_t *)(pRsp+1);
 
       for ( i = 0; i < cnt; i++ )
       {
@@ -1956,7 +1968,14 @@ static ZStatus_t bdbTL_ProcessInCmd_DeviceInfoRsp( zclIncoming_t *pInMsg )
   {
     bdbTLDeviceInfoRsp_t *pRsp;
     uint8_t cnt = pInMsg->pData[TOUCHLINK_CMDLEN_DEVICE_INFO_RSP-1];
-    uint8_t rspLen = sizeof( bdbTLDeviceInfoRsp_t ) + ( cnt * sizeof( devInfoRec_t ) );
+    // transID + numSubDevices + startIndex + cnt
+    uint16_t rspLen = sizeof( bdbTLDeviceInfoRsp_t) + ( cnt * sizeof( devInfoRec_t ) );
+    uint16_t actualDataLen = pInMsg->pDataLen;
+
+    if ( rspLen > actualDataLen )
+    {
+      return status;
+    }
 
     pRsp = (bdbTLDeviceInfoRsp_t *)zcl_mem_alloc( rspLen );
     if ( pRsp )

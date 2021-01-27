@@ -60,6 +60,8 @@ extern "C"
 /*********************************************************************
  * TYPEDEFS
  */
+//! \brief Callback function type for starting bdb finding and binding
+typedef void (*tl_BDBFindingBindingCb_t)(void);
 
 /*********************************************************************
  * VARIABLES
@@ -75,6 +77,11 @@ extern uint8_t touchlinkAppAllowStealing;;
  *              This function must be called by the application during its initialization.
  */
 extern void touchLinkTargetApp_Init(uint8_t  zclSampleApp_Entity);
+
+/*
+ * @brief       Register application finding and binding callback
+ */
+extern void touchLinkApp_registerFindingBindingCb(tl_BDBFindingBindingCb_t comCb);
 
 /*********************************************************************
 *********************************************************************/

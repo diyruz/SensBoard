@@ -145,17 +145,12 @@ extern "C"
 //Consider that ZED will have to wait longer since their responses will need to
 //be pooled and will be dependent of the number of targets that is expected to be found
 #if ZG_BUILD_RTR_TYPE
-#define IDENTIFY_QUERY_RSP_TIMEOUT               5000
-#define SIMPLEDESC_RESPONSE_TIMEOUT             (ROUTE_DISCOVERY_TIME * 1000)  // Timeout for ZR
+#define IDENTIFY_QUERY_RSP_TIMEOUT                     5000
+#define SIMPLEDESC_RESPONSE_TIMEOUT_RTR                (ROUTE_DISCOVERY_TIME * 1000)  // Timeout for ZR
 #else
-#define IDENTIFY_QUERY_RSP_TIMEOUT               10000
-
-#if (RFD_RCVC_ALWAYS_ON==TRUE)
-#define SIMPLEDESC_RESPONSE_TIMEOUT             3000
-#else
-#define SIMPLEDESC_RESPONSE_TIMEOUT             (3 * nwk_GetConfigPollRate(POLL_RATE_TYPE_DEFAULT))      // Timeout for ZED  *Don't use time smaller than POLL_RATE
-#endif
-
+#define IDENTIFY_QUERY_RSP_TIMEOUT                     10000
+#define SIMPLEDESC_RESPONSE_TIMEOUT_RX_ALWAYS_ON       3000
+#define SIMPLEDESC_RESPONSE_TIMEOUT_SLEEPY             (3 * nwk_GetConfigPollRate(POLL_RATE_TYPE_DEFAULT))      // Timeout for ZED  *Don't use time smaller than POLL_RATE
 #endif
 
 
@@ -224,7 +219,7 @@ extern "C"
 #define BDBREPORTING_DEFAULTMININTERVAL    0x000A
 
 //Define the DISABLE_DEFAULT_RSP flag for reporting attributes
-#define BDB_REPORTING_DISABLE_DEFAULT_RSP  TRUE
+#define BDB_REPORTING_DISABLE_DEFAULT_RSP  FALSE
 #endif
 
 /*********************************************************************

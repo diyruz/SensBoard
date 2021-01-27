@@ -101,12 +101,16 @@ static ZStatus_t targetResetToFNReqCB( afAddrType_t *srcAddr, bdbTLResetToFNReq_
 static ZStatus_t targetNwkStartReqCB( afAddrType_t *srcAddr, bdbTLNwkStartReq_t *pReq, uint8_t seqNum );
 static ZStatus_t targetNwkJoinReqCB( afAddrType_t *srcAddr, bdbTLNwkJoinReq_t *pReq, uint8_t seqNum );
 static ZStatus_t targetNwkUpdateReqCB( afAddrType_t *srcAddr, bdbTLNwkUpdateReq_t *pReq );
+static ZStatus_t targetEndpointInfo(afAddrType_t *srcAddr, bdbTLEndpointInfo_t *pRsp);
+static ZStatus_t targetGetGrpIDsRsp(afAddrType_t *srcAddr, bdbTLGetGrpIDsRsp_t *pRsp);
+static ZStatus_t targetGetEPListRsp(afAddrType_t *srcAddr, bdbTLGetEPListRsp_t *pRsp);
 
 /*********************************************************************
  * LOCAL VARIABLES
  */
 // Info related to the received request
 static afAddrType_t dstAddr;
+static tl_BDBFindingBindingCb_t commissioningCb;
 
 /*********************************************************************
  * TouchLink Target Callback Table
@@ -135,6 +139,18 @@ static bdbTL_InterPANCallbacks_t touchLinkTarget_CmdCBs =
   NULL,                     // Network Start Response command
   NULL,                     // Network Join Router Response command
   NULL                      // Network Join End Device Response command
+};
+
+static bdbTL_AppCallbacks_t touchlinkTarget_AppCBs =
+{
+  // Received Server Commands
+  NULL,  // Get Group Identifiers Request command
+  NULL,  // Get Endpoint List Request command
+
+  // Received Client Commands
+  targetEndpointInfo,  // Endpoint Information command
+  targetGetGrpIDsRsp,  // Get Group Identifiers Response command
+  targetGetEPListRsp  // Get Endpoint List Response command
 };
 
 /*********************************************************************
@@ -166,6 +182,21 @@ void touchLinkTargetApp_Init(uint8_t  zclSampleApp_Entity)
   Zstackapi_bdbTouchlinkGetAllowStealingReq(tlAppEntity,&getAllowStealingRsp);
   touchlinkAppAllowStealing = getAllowStealingRsp.allowStealing;
 
+  bdbTL_RegisterCmdCallbacks(TOUCHLINK_INTERNAL_ENDPOINT, &touchlinkTarget_AppCBs);
+}
+
+/*********************************************************************
+ * @fn          touchLinkApp_registerFindingBindingCb
+ *
+ * @brief       Register application finding and binding callback
+ *
+ * @param       comCb - bdb finding and binding callback function
+ *
+ * @return      none
+ */
+void touchLinkApp_registerFindingBindingCb(tl_BDBFindingBindingCb_t comCb)
+{
+  commissioningCb = comCb;
 }
 
 /*********************************************************************
@@ -368,6 +399,12 @@ static ZStatus_t targetNwkJoinReqCB( afAddrType_t *srcAddr, bdbTLNwkJoinReq_t *p
     return ( ZFailure );
   }
 
+  uint8_t newUpdateId = touchLink_NewNwkUpdateId( pReq->nwkUpdateId, _NIB.nwkUpdateId);
+  if ( _NIB.nwkUpdateId != newUpdateId )
+  {
+    NLME_SetUpdateID(newUpdateId);
+  }
+
   dstAddr = *srcAddr;
   dstAddr.panId = 0xFFFF;
 
@@ -381,6 +418,11 @@ static ZStatus_t targetNwkJoinReqCB( afAddrType_t *srcAddr, bdbTLNwkJoinReq_t *p
 
   Zstackapi_touchlinkNwkJoinReqInd(tlAppEntity, pTargetNwkJoinReq);
   zcl_mem_free(pTargetNwkJoinReq);
+
+  if(commissioningCb)
+  {
+    commissioningCb();
+  }
 
   return ( ZSuccess );
 }
@@ -417,6 +459,56 @@ static ZStatus_t targetNwkUpdateReqCB( afAddrType_t *srcAddr, bdbTLNwkUpdateReq_
     zcl_mem_free(pTargetNwkUpdateReq);
 
     return ( ZSuccess );
+}
+
+/*********************************************************************
+ * @fn      targetEndpointInfo
+ *
+ * @brief   This callback is called to process an Endpoint Info Cmd
+ *
+ * @param   *srcAddr -- source address of the command
+ * @param   *pRsp - parsed command payload
+ *
+ * @return  ZStatus_t
+ */
+static ZStatus_t targetEndpointInfo(afAddrType_t *srcAddr, bdbTLEndpointInfo_t *pRsp)
+{
+  // TODO: Implement application behavior
+  return ZSuccess;
+}
+
+/*********************************************************************
+ * @fn      targetGetGrpIDsRsp
+ *
+ * @brief   This callback is called to process a Get Group Identifiers
+ *          Response
+ *
+ * @param   *srcAddr -- source address of the response
+ * @param   *pRsp - parsed response payload
+ *
+ * @return  ZStatus_t
+ */
+static ZStatus_t targetGetGrpIDsRsp(afAddrType_t *srcAddr, bdbTLGetGrpIDsRsp_t *pRsp)
+{
+  // TODO: Implement application behavior
+  return ZSuccess;
+}
+
+/*********************************************************************
+ * @fn      targetGetEPListRsp
+ *
+ * @brief   This callback is called to process a Get Endpoint List
+ *          Response
+ *
+ * @param   *srcAddr -- source address of the response
+ * @param   *pRsp - parsed response payload
+ *
+ * @return  ZStatus_t
+ */
+static ZStatus_t targetGetEPListRsp(afAddrType_t *srcAddr, bdbTLGetEPListRsp_t *pRsp)
+{
+  // TODO: Implement application behavior
+  return ZSuccess;
 }
 
 #endif // BDB_TL_TARGET

@@ -650,7 +650,8 @@ uint8_t StubAPS_ZMacCallback( uint8_t *msgPtr )
   }
   else if ( event == MAC_MCPS_DATA_CNF )
   {
-    buf = ((macMcpsDataCnf_t *)msgPtr)->pDataReq->msdu.p;
+    // Adjust the msdu buffer in dataCnf from MAC header to MAC payload
+    buf = (uint8_t *)((macMcpsDataCnf_t *)msgPtr)->pDataReq + sizeof(macMcpsDataReq_t) + MAC_DATA_OFFSET;
   }
 
   if ( buf )

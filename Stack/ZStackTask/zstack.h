@@ -1922,7 +1922,7 @@ typedef struct _zstack_afincomingmsgind_t
     /** Message's network radius, 0 mean internal */
     uint8_t radius;
     /** Length of the message "payload" */
-    uint8_t n_payload;
+    uint16_t n_payload;
     /** Pointer to the message "payload" */
     uint8_t *pPayload;
 } zstack_afIncomingMsgInd_t;

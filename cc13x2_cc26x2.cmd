@@ -1,11 +1,11 @@
 /******************************************************************************
 
- @file  cc26x2lp.cmd
+ @file  cc13x2_cc26x2.cmd
 
- @brief Linker configuration file for MAC-Collector on CC2652 LaunchPad
+ @brief Linker configuration file for MAC-Collector on cc13x2_cc26x2 LaunchPad
 
  Group: WCS LPC
- Target Device: CC2652
+ Target Device: cc13x2_cc26x2
 
  ******************************************************************************
 

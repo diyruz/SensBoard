@@ -745,9 +745,6 @@ extern "C"
 
 #define UNICAST_MSG( msg )          ( (msg)->wasBroadcast == false && (msg)->groupId == 0 )
 
-// Padding needed if buffer has odd number of octects in length
-#define PADDING_NEEDED( bufLen )    ( (bufLen) % 2 )
-
 // Check for Cluster IDs
 #define ZCL_CLUSTER_ID_GEN( id )      ( /* (id) >= ZCL_CLUSTER_ID_GENERAL_BASIC &&*/ \
                                         (id) <= ZCL_CLUSTER_ID_GENERAL_COMMISSIONING )
@@ -846,25 +843,25 @@ typedef struct
 
 #ifdef ZCL_READ
 /// Read Attribute Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t  numAttr;            //!< number of attributes in the list
   uint16_t attrID[];           //!< supported attributes list - this structure should
-                             //!< be allocated with the appropriate number of attributes.
+                               //!< be allocated with the appropriate number of attributes.
 } zclReadCmd_t;
 
 /// Read Attribute Response Status record
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint16_t attrID;            //!< attribute ID
   uint8_t  status;            //!< should be ZCL_STATUS_SUCCESS or error
   uint8_t  dataType;          //!< attribute data type
   uint8_t  *data;             //!< this structure is allocated, so the data is HERE
-                            //!< - the size depends on the attribute data type
+                              //!< - the size depends on the attribute data type
 } zclReadRspStatus_t;
 
 /// Read Attribute Response Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t              numAttr;     //!< number of attributes in the list
   zclReadRspStatus_t attrList[];  //!< attribute status list
@@ -872,7 +869,7 @@ typedef struct
 #endif // ZCL_READ
 
 /// Write Attribute record
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint16_t attrID;             //!< attribute ID
   uint8_t  dataType;           //!< attribute data type
@@ -881,28 +878,28 @@ typedef struct
 } zclWriteRec_t;
 
 /// Write Attribute Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t         numAttr;     //!< number of attribute records in the list
   zclWriteRec_t attrList[];  //!< attribute records
 } zclWriteCmd_t;
 
 /// Write Attribute Status record
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t  status;             //!< should be ZCL_STATUS_SUCCESS or error
   uint16_t attrID;             //!< attribute ID
 } zclWriteRspStatus_t;
 
 /// Write Attribute Response Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t               numAttr;     //!< number of attribute status in the list
   zclWriteRspStatus_t attrList[];  //!< attribute status records
 } zclWriteRspCmd_t;
 
 /// Configure Reporting Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t  direction;          //!< to send or receive reports of the attribute
   uint16_t attrID;             //!< attribute ID
@@ -915,14 +912,14 @@ typedef struct
 } zclCfgReportRec_t;
 
 /// Configure report attribute list
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t             numAttr;    //!< number of attribute IDs in the list
   zclCfgReportRec_t attrList[]; //!< attribute ID list
 } zclCfgReportCmd_t;
 
 /// Attribute Status record
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t  status;             //!< should be ZCL_STATUS_SUCCESS or error
   uint8_t  direction;          //!< whether attributes are reported or reports of attributes are received
@@ -930,28 +927,28 @@ typedef struct
 } zclCfgReportStatus_t;
 
 /// Configure Reporting Response Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t                numAttr;    //!< number of attribute status in the list
   zclCfgReportStatus_t attrList[]; //!< attribute status records
 } zclCfgReportRspCmd_t;
 
 /// Read Reporting Configuration Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t  direction; //!< to send or receive reports of the attribute
   uint16_t attrID;    //!< attribute ID
 } zclReadReportCfgRec_t;
 
 /// Read Report Configuration Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t                 numAttr;    //!< number of attributes in the list
   zclReadReportCfgRec_t attrList[]; //!< attribute ID list
 } zclReadReportCfgCmd_t;
 
 /// Attribute Reporting Configuration record
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t  status;             //!< status field
   uint8_t  direction;          //!< to send or receive reports of the attribute
@@ -965,14 +962,14 @@ typedef struct
 } zclReportCfgRspRec_t;
 
 /// Read Reporting Configuration Response Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t                numAttr;    //!< number of records in the list
   zclReportCfgRspRec_t attrList[]; //!< attribute reporting configuration list
 } zclReadReportCfgRspCmd_t;
 
 /// Attribute Report
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint16_t attrID;             //!< atrribute ID
   uint8_t  dataType;           //!< attribute data type
@@ -981,21 +978,21 @@ typedef struct
 } zclReport_t;
 
 /// Report Attributes Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t       numAttr;       //!< number of reports in the list
   zclReport_t attrList[];    //!< attribute report list
 } zclReportCmd_t;
 
 /// Default Response Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t  commandID;
   uint8_t  statusCode;
 } zclDefaultRspCmd_t;
 
 /// Discover Attributes and Attributes Extended Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint16_t startAttr;          //!< specifies the minimum value of the identifier
                              //!< to begin attribute discovery.
@@ -1004,14 +1001,14 @@ typedef struct
 } zclDiscoverAttrsCmd_t;
 
 /// Attribute Report info
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint16_t attrID;             //!< attribute ID
   uint8_t  dataType;           //!< attribute data type (see Table 17 in Spec)
 } zclDiscoverAttrInfo_t;
 
 /// Discover Attributes Response Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t             discComplete; //!< whether or not there're more attributes to be discovered
   uint8_t             numAttr;      //!< number of attributes in the list
@@ -1019,21 +1016,21 @@ typedef struct
 } zclDiscoverAttrsRspCmd_t;
 
 /// String Data Type
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t strLen; //!< String length
   uint8_t *pStr; //!< Pointer to string buffer
 } UTF8String_t;
 
 /// Discover Commands Received, Discover Commands Generated
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t startCmdID; //!< Start command ID to discover
   uint8_t maxCmdID; //!< Maximum command ID to discover
 } zclDiscoverCmdsCmd_t;
 
 /// Discover Commands Received Response Command, Discover Commands Generated Response
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t discComplete;
   uint8_t cmdType;    //!< either ZCL_CMD_DISCOVER_CMDS_GEN or ZCL_CMD_DISCOVER_CMDS_RECEIVED
@@ -1042,7 +1039,7 @@ typedef struct
 } zclDiscoverCmdsCmdRsp_t;
 
 /// Attribute info
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint16_t attrID; //!< Attribute ID
   uint8_t attrDataType; //!< Data Type
@@ -1050,7 +1047,7 @@ typedef struct
 } zclExtAttrInfo_t;
 
 /// Discover Attributes Extended Response Command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t discComplete;
   uint8_t numAttr;                  //!< number of attributes provided

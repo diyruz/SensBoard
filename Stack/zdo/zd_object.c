@@ -2111,6 +2111,13 @@ void ZDO_ProcessDeviceAnnce( zdoIncomingMsg_t *inMsg )
   AddrMgrEntry_t addrEntry;
   uint8_t parentExt[Z_EXTADDR_LEN];
 
+  if ( ZG_DEVICE_ENDDEVICE_TYPE && zgRxAlwaysOn == FALSE )
+  {
+    // if we are an rxAlwaysOn capable end device but are operating as sleepy,
+    // we should not process the message
+    return;
+  }
+
   if ( (_NIB.nwkState != NWK_ROUTER) && (_NIB.nwkState != NWK_ENDDEVICE) )
   {
     // we aren't stable, ignore the message

@@ -9,7 +9,7 @@
 
  ******************************************************************************
  
- Copyright (c) 2006-2020, Texas Instruments Incorporated
+ Copyright (c) 2006-2021, Texas Instruments Incorporated
  All rights reserved.
 
  IMPORTANT: Your use of this Software is limited to those specific rights
@@ -81,13 +81,14 @@
  *                                          Define
  * ------------------------------------------------------------------------------------------------
  */
-#define MAC_TX_IS_PHYSICALLY_ACTIVE()       (macTxActive & MAC_TX_ACTIVE_PHYSICALLY_BV)
+#define MAC_TX_IS_PHYSICALLY_ACTIVE()       ((macTxActive & MAC_TX_ACTIVE_PHYSICALLY_BV) || macAckTxActive)
 
 /* ------------------------------------------------------------------------------------------------
  *                                   Global Variable Externs
  * ------------------------------------------------------------------------------------------------
  */
 extern volatile uint8 macTxActive;
+extern volatile uint8 macAckTxActive;
 extern uint8 macTxBe;
 extern uint8 macTxType;
 extern uint16 macTxCsmaBackoffDelay;

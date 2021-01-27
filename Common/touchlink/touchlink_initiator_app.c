@@ -101,10 +101,14 @@ static ZStatus_t initiatorScanRspCB( afAddrType_t *srcAddr, bdbTLScanRsp_t *pRsp
 static ZStatus_t initiatorDeviceInfoRspCB( afAddrType_t *srcAddr, bdbTLDeviceInfoRsp_t *pRsp );
 static ZStatus_t initiatorNwkStartRspCB( afAddrType_t *srcAddr, bdbTLNwkStartRsp_t *pRsp );
 static ZStatus_t initiatorNwkJoinRspCB( afAddrType_t *srcAddr, bdbTLNwkJoinRsp_t *pRsp );
+static ZStatus_t initiatorGetGrpIDsReq(afAddrType_t *srcAddr, bdbTLGetGrpIDsReq_t *pReq, uint8_t seqNum);
+static ZStatus_t initiatorGetEPListReq(afAddrType_t *srcAddr, bdbTLGetEPListReq_t *pReq, uint8_t SeqNum);
+
 /*********************************************************************
  * LOCAL VARIABLES
  */
 
+static tl_BDBFindingBindingCb_t commissioningCb;
 
 /*********************************************************************
  * TOUCHLINK Initiator Callback Table
@@ -135,6 +139,18 @@ static bdbTL_InterPANCallbacks_t touchLinkInitiator_CmdCBs =
   initiatorNwkJoinRspCB     // Network Join End Device Response command
 };
 
+static bdbTL_AppCallbacks_t touchlinkInitiator_AppCBs =
+{
+  // Received Server Commands
+  initiatorGetGrpIDsReq,  // Get Group Identifiers Request command
+  initiatorGetEPListReq,  // Get Endpoint List Request command
+
+  // Received Client Commands
+  NULL,  // Endpoint Information command
+  NULL,  // Get Group Identifiers Response command
+  NULL  // Get Endpoint List Response command
+};
+
 /*********************************************************************
  * PUBLIC FUNCTIONS
  */
@@ -158,6 +174,22 @@ void touchLinkInitiatorApp_Init(uint8_t zclSampleApp_Entity)
   zclport_registerEndpoint(tlAppEntity, &touchLink_EP);
 
   bdbTL_RegisterInterPANCmdCallbacks(&touchLinkInitiator_CmdCBs);
+
+  bdbTL_RegisterCmdCallbacks(TOUCHLINK_INTERNAL_ENDPOINT, &touchlinkInitiator_AppCBs);
+}
+
+/*********************************************************************
+ * @fn          touchLinkApp_registerFindingBindingCb
+ *
+ * @brief       Register application finding and binding callback
+ *
+ * @param       fbCb - bdb finding and binding callback function
+ *
+ * @return      none
+ */
+void touchLinkApp_registerFindingBindingCb(tl_BDBFindingBindingCb_t fbCb)
+{
+  commissioningCb = fbCb;
 }
 
 /*********************************************************************
@@ -313,6 +345,11 @@ static ZStatus_t initiatorNwkJoinReqCB( afAddrType_t *srcAddr, bdbTLNwkJoinReq_t
     return ( ZFailure );
   }
 
+  uint8_t newUpdateId = touchLink_NewNwkUpdateId( pReq->nwkUpdateId, _NIB.nwkUpdateId);
+  if ( _NIB.nwkUpdateId != newUpdateId )
+  {
+    NLME_SetUpdateID(newUpdateId);
+  }
   zstack_touchlinkNwkJointReq_t *pInitiatorNwkJoinReq;
   pInitiatorNwkJoinReq = (zstack_touchlinkNwkJointReq_t*)zcl_mem_alloc( sizeof(zstack_touchlinkNwkJointReq_t) );
 
@@ -493,7 +530,49 @@ static ZStatus_t initiatorNwkJoinRspCB( afAddrType_t *srcAddr, bdbTLNwkJoinRsp_t
 
   Zstackapi_tlInitiatorNwkJoinRspInd(tlAppEntity, pNwkJoinRsp);
   zcl_mem_free(pNwkJoinRsp);
+
+  if(commissioningCb)
+  {
+    commissioningCb();
+  }
+
   return ( ZSuccess );
+}
+
+/*********************************************************************
+ * @fn      initiatorGetGrpIDsReq
+ *
+ * @brief   This callback is called to process a Get Group Identifiers
+ *          Request
+ *
+ * @param   *srcAddr -- source address of the request
+ * @param   *pReq - parsed request payload
+ * @param   seqNum - incoming sequence number
+ *
+ * @return  ZStatus_t
+ */
+static ZStatus_t initiatorGetGrpIDsReq(afAddrType_t *srcAddr, bdbTLGetGrpIDsReq_t *pReq, uint8_t seqNum)
+{
+  // TODO: Implement application behavior
+  return ZSuccess;
+}
+
+/*********************************************************************
+ * @fn      initiatorGetEPListReq
+ *
+ * @brief   This callback is called to process a Get Endpoint List
+ *          Request
+ *
+ * @param   *srcAddr -- source address of the request
+ * @param   *pReq - parsed request payload
+ * @param   seqNum - incoming sequence number
+ *
+ * @return  ZStatus_t
+ */
+static ZStatus_t initiatorGetEPListReq(afAddrType_t *srcAddr, bdbTLGetEPListReq_t *pReq, uint8_t SeqNum)
+{
+  // TODO: Implement application behavior
+  return ZSuccess;
 }
 
 #endif

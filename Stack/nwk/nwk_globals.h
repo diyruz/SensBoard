@@ -72,7 +72,7 @@ extern "C" {
   #define ZIGBEE_FRAGMENTATION
 #endif
 
-#if ( RFD_RCVC_ALWAYS_ON==TRUE ) || ( ZG_BUILD_RTR_TYPE )
+#if ( RFD_RX_ALWAYS_ON_CAPABLE == TRUE ) || ( ZG_BUILD_RTR_TYPE )
   // The PANID Conflict feature is mandatory for both 2007 and 2007 PRO.
   // So, it will be ON all the time (except sleeping end devices).
   #if !defined ( ZIGBEE_PANID_CONFLICT )
@@ -112,8 +112,9 @@ extern "C" {
 
 //Z-Stack does not support other than ZigbeePro_Profile.
 //These parameters must not be modified to keep Zigbee Core compliance.
+// Refer to Zigbee PRO Stack Profile 2 (07-4855-05) for more information
 #if ( STACK_PROFILE_ID == ZIGBEEPRO_PROFILE )
-    #define MAX_NODE_DEPTH      20
+    #define MAX_NODE_DEPTH      15
     #define USE_NWK_SECURITY    1   // true or false
     #define SECURITY_LEVEL      5
 #endif

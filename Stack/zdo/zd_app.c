@@ -670,6 +670,9 @@ uint8_t ZDOInitDeviceEx( uint16_t startDelay, uint8_t mode)
     }
   }
 
+  //Initialize default poll rates
+  nwk_InitializeDefaultPollRates();
+
 #if defined ( NV_RESTORE )
   // Hold down the SW_BYPASS_NV key (defined in on_board.h)
   // while booting to skip past NV Restore.
@@ -1494,11 +1497,7 @@ void ZDApp_ProcessNetworkJoin( void )
         // The receiver is on, turn network layer polling off.
         if ( ZDO_Config_Node_Descriptor.CapabilityFlags & CAPINFO_RCVR_ON_IDLE )
         {
-          // if Child Table Management process is not enabled
-          if ( zgChildAgingEnable == FALSE )
-          {
-            nwk_SetCurrentPollRateType(POLL_RATE_RX_ON_TRUE,TRUE);
-          }
+          nwk_SetCurrentPollRateType(POLL_RATE_RX_ON_TRUE,TRUE);
         }
 
         if ( ZSTACK_ROUTER_BUILD )

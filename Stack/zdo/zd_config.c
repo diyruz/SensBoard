@@ -135,11 +135,14 @@ void ZDConfig_UpdateNodeDescriptor( void )
   }
   else if ( ZSTACK_END_DEVICE_BUILD )
   {
-    ZDO_Config_Node_Descriptor.CapabilityFlags = (CAPINFO_DEVICETYPE_RFD
-  #if ( RFD_RCVC_ALWAYS_ON == TRUE)
-            | CAPINFO_RCVR_ON_IDLE
-  #endif
-        | CAPINFO_ALLOC_ADDR);
+    ZDO_Config_Node_Descriptor.CapabilityFlags = (CAPINFO_DEVICETYPE_RFD | CAPINFO_ALLOC_ADDR);
+
+#if ( RFD_RX_ALWAYS_ON_CAPABLE == TRUE )
+  if ( ZG_DEVICE_ENDDEVICE_TYPE && zgRxAlwaysOn == TRUE )
+  {
+    ZDO_Config_Node_Descriptor.CapabilityFlags |= CAPINFO_RCVR_ON_IDLE;
+  }
+#endif
   }
 
   // Manufacturer Code - *YOU FILL IN*

@@ -136,7 +136,7 @@ uint8_t zgConcentratorRC = CONCENTRATOR_ROUTE_CACHE;   // concentrator with rout
 uint8_t zgNwkSrcRtgExpiryTime = SRC_RTG_EXPIRY_TIME;
 
 // Cleanup Child Table according to routing traffic
-uint8_t zgRouterOffAssocCleanup = FALSE;
+uint8_t zgRouterOffAssocCleanup = TRUE;
 
 // Determines whether or not a remote NWK leave request command frame received
 // by the local device is accepted .
@@ -206,6 +206,9 @@ uint8_t zTouchLinkNwkStartRtr = FALSE;
 
 //==========    Allow radio to be turned off    ===============
 uint8_t zgAllowRadioRxOff = TRUE;
+
+//==========    For ZED, determines if rx always on is enabled  ===============
+uint8_t zgRxAlwaysOn = RFD_RX_ALWAYS_ON;
 
 /*********************************************************************
  * APS GLOBAL VARIABLES

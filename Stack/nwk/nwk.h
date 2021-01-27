@@ -217,9 +217,6 @@ extern "C" {
 #define NWK_PARENT_INFO_MAC_DATA_POLL           0x01
 #define NWK_PARENT_INFO_END_DEVICE_TIMEOUT_MSG  0x02
 
-#define PARENT_INFO_MAC_DATA_POLL_BIT           0x00
-#define PARENT_INFO_END_DEVICE_TIMEOUT_BIT      0x01
-
 #define PARENT_INFO_VALID_PARAMETERS (NWK_PARENT_INFO_MAC_DATA_POLL | NWK_PARENT_INFO_END_DEVICE_TIMEOUT_MSG)
 
 /*********************************************************************
@@ -278,7 +275,7 @@ typedef struct
 
   // non-standard attributes
   byte  RouteDiscoveryTime;
-  byte  RouteExpiryTime;        // set to 0 to turn off expiration of routes
+  byte  RouteExpiryTime;        // set to 255 to turn off expiration of routes
 
   // non-settable
   uint16_t  nwkDevAddress;

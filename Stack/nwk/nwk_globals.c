@@ -561,8 +561,7 @@ uint16_t nwk_adjustDelay( uint16_t existingDelay, uint8_t confirmStatus, uint16_
  */
 void nwk_InitializeDefaultPollRates(void)
 {
-
-    if(RFD_RCVC_ALWAYS_ON == FALSE)
+    if( ZG_DEVICE_ENDDEVICE_TYPE && zgRxAlwaysOn == FALSE )
     {
         //Disable all Poll Rates mode
         nwk_SetCurrentPollRateType(0xFFFF,FALSE);

@@ -687,11 +687,6 @@ ZStatus_t bdb_ProcessInReadReportCfgCmd( zclIncomingMsg_t *pInMsg )
       {
          reportChangeLen = zclGetDataTypeLength( attrRec.attr.dataType );
 
-         // add padding if needed
-         if ( PADDING_NEEDED( reportChangeLen ) )
-         {
-           reportChangeLen++;
-         }
          dataLen += reportChangeLen;
       }
     }
@@ -1858,6 +1853,9 @@ static uint8_t bdb_isAttrValueChangedSurpassDelta( uint8_t datatype, uint8_t* de
       OsalPort_memcpy(&D, (float*)delta, sizeof(D));
       OsalPort_memcpy(&C,  (float*)curValue, sizeof(C));
       OsalPort_memcpy(&L, (float*)lastValue, sizeof(L));
+      // float L = *((float*)lastValue);
+      // float D = *((float*)delta);
+      // float C = *((float*)curValue);
       if(L>=C)
       {
         res = ( L-C >= D) ? BDBREPORTING_TRUE:BDBREPORTING_FALSE;

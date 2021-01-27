@@ -56,6 +56,7 @@
 #include "mac_data.h"
 #include "mac_mgmt.h"
 #include "zcomdef.h"
+#include "ti_zstack_config.h"
 
 #ifndef ZSTACK_GPD
 #include "zglobals.h"
@@ -572,10 +573,14 @@ uint8_t ZMacSetReq( uint8_t attr, byte *value )
   {
     osal_cpyExtAddr( aExtendedAddress, value );
   }
-  if((attr == ZMacRxOnIdle) && (*value == FALSE) && (zgAllowRadioRxOff == FALSE))
+  if(attr == ZMacRxOnIdle)
   {
-    return ZFailure;
+    if ((*value == FALSE) && (zgAllowRadioRxOff == FALSE))
+    {
+      return ZFailure;
+    }
   }
+
   return (ZMacStatus_t) MAP_MAC_MlmeSetReq( attr, value );
 }
 

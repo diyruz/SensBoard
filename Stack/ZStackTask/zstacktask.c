@@ -5931,7 +5931,7 @@ static bool processSysConfigReadReq( uint8_t srcServiceTaskId, void *pMsg )
 
       pPtr->pRsp->CurrentPollRateTypesEnabled = nwk_GetCurrentPollRateType((uint32_t*)&(pPtr->pRsp->CurrentPollRate));
 
-      if(RFD_RCVC_ALWAYS_ON == FALSE)
+      if( ZG_DEVICE_ENDDEVICE_TYPE && zgRxAlwaysOn == FALSE )
       {
           pPtr->pRsp->PollRateDefault    = nwk_GetConfigPollRate(POLL_RATE_TYPE_DEFAULT);
           pPtr->pRsp->PollRateApp1       = nwk_GetConfigPollRate(POLL_RATE_TYPE_APP_1);

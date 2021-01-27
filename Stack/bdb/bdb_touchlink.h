@@ -164,11 +164,11 @@ typedef struct
 } bdbTLNwkParams_t;
 
 // Device Info
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
-  uint8_t endpoint;                     // Endpoint identifier
   uint16_t profileID;                   // Profile identifier
   uint16_t deviceID;                    // Device identifier
+  uint8_t endpoint;                     // Endpoint identifier
   uint8_t version;                      // Version
   uint8_t grpIdCnt;                     // Group identifier count
 } bdbTLDeviceInfo_t;

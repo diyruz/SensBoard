@@ -655,12 +655,17 @@ static void stackInit(void)
     uint16_t transactionPersistenceTime = 500;
     ZMacSetReq(MAC_TRANSACTION_PERSISTENCE_TIME, (byte *)&transactionPersistenceTime);
 
+    uint8_t macFrameRetries = ZMAC_MAX_FRAME_RETRIES;
+    ZMacSetReq(MAC_MAX_FRAME_RETRIES, &macFrameRetries);
+
     ZMacSetTransmitPower( (ZMacTransmitPower_t)TXPOWER );
 
-    if(RFD_RCVC_ALWAYS_ON == TRUE)
+#if (RFD_RX_ALWAYS_ON_CAPABLE == TRUE)
+    if( ZG_DEVICE_ENDDEVICE_TYPE && zgRxAlwaysOn == TRUE )
     {
-        nwk_SetCurrentPollRateType(POLL_RATE_RX_ON_TRUE,TRUE);
+      nwk_SetCurrentPollRateType(POLL_RATE_RX_ON_TRUE,TRUE);
     }
+#endif
 
 #ifdef FEATURE_UTC_TIME
     UTC_init();

@@ -218,21 +218,21 @@ typedef struct
 } bdbTLGetEPListReq_t;
 
 // Device information record
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t ieeeAddr[Z_EXTADDR_LEN]; // IEEE address
-  bdbTLDeviceInfo_t deviceInfo;  // Device info
   uint8_t sort;                    // Sort
+  bdbTLDeviceInfo_t deviceInfo;    // Device info
 } devInfoRec_t;
 
 // Device information response command frame
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint32_t transID;            // Inter-PAN transaction idententifier
   uint8_t numSubDevices;       // Number of sub-devices
   uint8_t startIndex;          // Start index
   uint8_t cnt;                 // Device information record count
-  devInfoRec_t devInfoRec[1]; // Device information record
+  devInfoRec_t devInfoRec[]; // Device information record
 } bdbTLDeviceInfoRsp_t;
 
 // Network start response command frame
@@ -265,23 +265,23 @@ typedef struct
 } bdbTLEndpointInfo_t;
 
 // Group information record
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint16_t grpID;  // Group identifier
   uint8_t grpType; // Group type
 } grpInfoRec_t;
 
 // Get group identifiers response command frame
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t total;               // total number of group ids supported by device
   uint8_t startIndex;          // Start index
   uint8_t cnt;                 // Number of entries in the group info record
-  grpInfoRec_t *grpInfoRec; // Group information record
+  grpInfoRec_t grpInfoRec[]; // Group information record
 } bdbTLGetGrpIDsRsp_t;
 
 // Endpoint information record entry
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint16_t nwkAddr;   // Network address
   uint8_t endpoint;   // Endpoint identifier
@@ -291,12 +291,12 @@ typedef struct
 } epInfoRec_t;
 
 // Get endpoint list response command format
-typedef struct
+PACKED_TYPEDEF_STRUCT
 {
   uint8_t total;             // total number of endpoints supported by device
   uint8_t startIndex;        // Start index
   uint8_t cnt;               // Number of entries in the endpoint info record
-  epInfoRec_t *epInfoRec; // Endpoint information record
+  epInfoRec_t epInfoRec[]; // Endpoint information record
 } bdbTLGetEPListRsp_t;
 
 /* Request Commands */
