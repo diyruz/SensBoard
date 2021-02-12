@@ -61,11 +61,11 @@ CCFG.levelBootloaderBackdoor  = "Active low";
 CCFG.ccfgTemplate.$name       = "ti_devices_CCFGTemplate0";
 
 ADC1.$name                = "CONFIG_ADC_CH1";
-ADC1.adc.adcPin.$assign   = "boosterpack.24";
+ADC1.adc.adcPin.$assign   = "boosterpack.25";
 ADC1.adcPinInstance.$name = "CONFIG_PIN_1";
 
 ADC2.$name                = "CONFIG_ADC_CH2";
-ADC2.adc.adcPin.$assign   = "boosterpack.23";
+ADC2.adc.adcPin.$assign   = "boosterpack.26";
 ADC2.adcPinInstance.$name = "CONFIG_PIN_2";
 ADC2.adcPinInstance.pull  = "Pull Up";
 

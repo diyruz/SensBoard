@@ -28,9 +28,9 @@ Converter file located [here](./DIYRuZ_SensBoard.js)
 pin1 on all jacks
 
 # ADC pins
-CH1 analog pin `DIO26` (pin2 on jack)
+CH1 analog pin `DIO27` (pin2 on jack)
 
-CH2 analog pin `DIO25` (pin2 on jack)
+CH2 analog pin `DIO28` (pin2 on jack)
 
 # Pulse counters
 CH1 counter pin `DIO22` (pin3 on jack)
