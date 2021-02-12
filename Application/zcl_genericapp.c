@@ -1228,9 +1228,7 @@ static void zclGenericApp_processCounter(Button_Handle _btn) {
                 counterEvents[i] &= ~(CLICK_EVENTS);
             }
 
-            if (counterEvents[i] & (PRESS_EVENTS)) {
-                LED_setOn(gRedLedHandle, 80);
-                LED_startBlinking(gGreenLedHandle, 500, 2);
+            if (counterEvents[i] & PRESS_EVENTS) {
                 uint16 alarmStatus = 0;
                 zclSS_IAS_Send_ZoneStatusChangeNotificationCmd(zclGenericApp_ChannelsSimpleDesc[i].EndPoint, &inderect_DstAddr, alarmStatus, 0, 0, 0, true, zcl_getFrameCounter());
                 counterEvents[i] &= ~(PRESS_EVENTS);
