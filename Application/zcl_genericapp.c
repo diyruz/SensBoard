@@ -1207,10 +1207,13 @@ static void zclGenericApp_processKey(Button_Handle _btn) {
 }
 
 static void zclGenericApp_processCounter(Button_Handle _btn) {
+    #define CLICK_EVENTS (Button_EV_CLICKED | Button_EV_LONGCLICKED | Button_EV_DOUBLECLICKED)
+    #define PRESS_EVENTS (Button_EV_PRESSED | Button_EV_LONGPRESSED)
+
     for (size_t i = 0; i < sizeof(gpioChannes) / sizeof(gpioChannes[0]); i++) {
         if (_btn == counterHandles[i]) {
 
-            if (counterEvents[i] & Button_EV_CLICKED) {
+            if (counterEvents[i] & CLICK_EVENTS) {
 
                 LED_setOn(gGreenLedHandle, 80);
                 LED_startBlinking(gGreenLedHandle, 500, 2);
@@ -1222,14 +1225,14 @@ static void zclGenericApp_processCounter(Button_Handle _btn) {
                 Req.endpoint = zclGenericApp_ChannelsSimpleDesc[i].EndPoint;
                 Zstackapi_bdbRepChangedAttrValueReq(appServiceTaskId, &Req);
                 zclGeneral_SendOnOff_CmdToggle(zclGenericApp_ChannelsSimpleDesc[i].EndPoint, &inderect_DstAddr, true,  zcl_getFrameCounter());
-                counterEvents[i] &= ~(Button_EV_CLICKED);
+                counterEvents[i] &= ~(CLICK_EVENTS);
             }
 
-            if (counterEvents[i] & Button_EV_PRESSED) {
+            if (counterEvents[i] & (PRESS_EVENTS)) {
                 LED_setOn(gRedLedHandle, 80);
                 uint16 alarmStatus = 0;
                 zclSS_IAS_Send_ZoneStatusChangeNotificationCmd(zclGenericApp_ChannelsSimpleDesc[i].EndPoint, &inderect_DstAddr, alarmStatus, 0, 0, 0, true, zcl_getFrameCounter());
-                counterEvents[i] &= ~(Button_EV_PRESSED);
+                counterEvents[i] &= ~(PRESS_EVENTS);
             }
 
             if (counterEvents[i] & Button_EV_RELEASED) {
