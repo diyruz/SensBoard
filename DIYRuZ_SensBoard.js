@@ -18,10 +18,10 @@ const CHANNELS_COUNT = 3;
 const ADC_ROUNDING_PRECISION = 3;
 
 
-
+const MINUTE = 60;
 const defaultReportingConfig = {
     minimumReportInterval: 0,
-    maximumReportInterval: 5,
+    maximumReportInterval: 6 * MINUTE,
     reportableChange: 0,
 };
 
