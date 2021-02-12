@@ -91,6 +91,8 @@
 /*********************************************************************
  * MACROS
  */
+
+#define BLINK_ONCE(ledHandle) {LED_setOn(ledHandle, 80); LED_startBlinking(ledHandle, 200, 1);}
 /*********************************************************************
  * CONSTANTS
  */
@@ -1183,8 +1185,7 @@ static void zclGenericApp_CounterPinCallback(Button_Handle _btn, Button_EventMas
  */
 static void zclGenericApp_processKey(Button_Handle _btn) {
 
-    LED_setOn(gGreenLedHandle, 80);
-    LED_startBlinking(gGreenLedHandle, 500, 5);
+    BLINK_ONCE(gGreenLedHandle);
 
     zstack_bdbStartCommissioningReq_t zstack_bdbStartCommissioningReq;
     // Button 1
@@ -1214,9 +1215,7 @@ static void zclGenericApp_processCounter(Button_Handle _btn) {
         if (_btn == counterHandles[i]) {
 
             if (counterEvents[i] & CLICK_EVENTS) {
-
-                LED_setOn(gGreenLedHandle, 80);
-                LED_startBlinking(gGreenLedHandle, 500, 2);
+                BLINK_ONCE(gGreenLedHandle);
 
                 zclGenericApp_MutistateInputValues[i] += 1;
                 zstack_bdbRepChangedAttrValueReq_t Req;
@@ -1235,7 +1234,6 @@ static void zclGenericApp_processCounter(Button_Handle _btn) {
             }
 
             if (counterEvents[i] & Button_EV_RELEASED) {
-                LED_setOff(gRedLedHandle);
                 counterEvents[i] &= ~(Button_EV_RELEASED);
                 uint16 alarmStatus = 0;
                 alarmStatus |= SS_IAS_ZONE_STATUS_ALARM1_ALARMED;
