@@ -147,6 +147,7 @@ zstack.deviceType                            = "zed";
 zstack.deviceTypeReadOnly                    = true;
 zstack.touchlink.$name                       = "ti_zstack_touchlink_zstack_touchlink0";
 zstack.pm.$name                              = "ti_zstack_pm_zstack_pm0";
+zstack.pm.pollPeriod                         = 4294967295;
 zstack.rf.$name                              = "ti_zstack_rf_zstack_rf0";
 zstack.rf.primaryChannels                    = [11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26];
 zstack.rf.txPower                            = "5";
