@@ -1,7 +1,7 @@
 /**
  * These arguments were used when this file was generated. They will be automatically applied on subsequent loads
  * via the GUI or CLI. Run CLI with '--help' for additional information on how to override these arguments.
- * @cliArgs --board "/ti/boards/CC26X2R1_LAUNCHXL" --product "simplelink_cc13x2_26x2_sdk@4.40.00.44"
+ * @cliArgs --board "/ti/boards/CC26X2R1_LAUNCHXL" --product "simplelink_cc13x2_26x2_sdk@4.40.04.04"
  * @versions {"data":"2021010520","timestamp":"2021010520","tool":"1.7.0+1746","templates":null}
  */
 
@@ -121,17 +121,20 @@ Button2.gpioPin.$name             = "CONFIG_GPIO_BTN2";
 Button2.gpioPin.pinInstance.$name = "CONFIG_PIN_BTN2";
 
 Button3.$name                     = "CONFIG_BUTTON_CH1";
-Button3.gpioPin.$name             = "CONFIG_GPIO_0";
+Button3.hwConfig                  = "Active Low Pull Up";
+Button3.gpioPin.$name             = "CONFIG_GPIO_COUNTER_CH1";
 Button3.gpioPin.gpioPin.$assign   = "boosterpack.5";
 Button3.gpioPin.pinInstance.$name = "CONFIG_PIN_0";
 
 Button4.$name                     = "CONFIG_BUTTON_CH2";
-Button4.gpioPin.$name             = "CONFIG_GPIO_1";
+Button4.hwConfig                  = "Active Low Pull Up";
+Button4.gpioPin.$name             = "CONFIG_GPIO_COUNTER_CH2";
 Button4.gpioPin.gpioPin.$assign   = "boosterpack.8";
 Button4.gpioPin.pinInstance.$name = "CONFIG_PIN_3";
 
 Button5.$name                     = "CONFIG_BUTTON_CH3";
-Button5.gpioPin.$name             = "CONFIG_GPIO_2";
+Button5.hwConfig                  = "Active Low Pull Up";
+Button5.gpioPin.$name             = "CONFIG_GPIO_COUNTER_CH3";
 Button5.gpioPin.gpioPin.$assign   = "boosterpack.9";
 Button5.gpioPin.pinInstance.$name = "CONFIG_PIN_4";
 
